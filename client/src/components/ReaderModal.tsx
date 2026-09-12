@@ -716,22 +716,22 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
               <p className="opacity-40 text-[9px] font-black uppercase tracking-widest">{book.fileType}</p>
             </div>
           </div>
-          <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto sm:gap-2">
-            <button onClick={toggleTTS} aria-label="Leer en voz alta" className={`hidden sm:flex p-3 rounded-2xl transition-all active:scale-90 ${isReading ? "bg-primary text-primary-foreground shadow-lg" : "hover:bg-secondary"}`}>
+          <div className="flex min-w-0 shrink-0 items-center justify-end gap-0.5 overflow-x-auto sm:w-auto sm:gap-2">
+            <button onClick={toggleTTS} aria-label="Leer en voz alta" className={`flex shrink-0 rounded-xl p-2 transition-all active:scale-90 sm:rounded-2xl sm:p-3 ${isReading ? "bg-primary text-primary-foreground shadow-lg" : "hover:bg-secondary"}`}>
               {isReading ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </button>
-            <button onClick={() => setShowNotes(!showNotes)} aria-label="Abrir notas" className="hidden sm:flex p-3 rounded-2xl hover:bg-secondary transition-all active:scale-90 relative">
+            <button onClick={() => setShowNotes(!showNotes)} aria-label="Abrir notas" className="relative flex shrink-0 rounded-xl p-2 transition-all hover:bg-secondary active:scale-90 sm:rounded-2xl sm:p-3">
               <MessageSquare className="h-5 w-5" />
               {notes[book.id]?.length > 0 && <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full" />}
             </button>
-            <button onClick={() => setShowSettings(!showSettings)} aria-label="Abrir ajustes" className="hidden sm:flex p-3 rounded-2xl hover:bg-secondary transition-all active:scale-90">
+            <button onClick={() => setShowSettings(!showSettings)} aria-label="Abrir ajustes" className="flex shrink-0 rounded-xl p-2 transition-all hover:bg-secondary active:scale-90 sm:rounded-2xl sm:p-3">
               <Settings className="h-5 w-5" />
             </button>
             <button onClick={() => setIsFocusMode(!isFocusMode)} aria-label={isFocusMode ? "Salir del modo enfoque" : "Activar modo enfoque"} className="p-2 sm:p-3 rounded-xl sm:rounded-2xl hover:bg-secondary transition-all active:scale-90">
               {isFocusMode ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </button>
-            <div className="hidden sm:block w-px h-6 bg-border/20 mx-2" />
-            <button onClick={onClose} aria-label="Cerrar lector" className="p-2 sm:p-3 rounded-xl sm:rounded-2xl hover:bg-destructive hover:text-white transition-all active:scale-90">
+            <div className="mx-0.5 h-5 w-px shrink-0 bg-border/20 sm:mx-2 sm:h-6" />
+            <button onClick={onClose} aria-label="Cerrar lector" className="flex shrink-0 rounded-xl p-2 transition-all hover:bg-destructive hover:text-white active:scale-90 sm:rounded-2xl sm:p-3">
               <X className="h-5 w-5" />
             </button>
           </div>
