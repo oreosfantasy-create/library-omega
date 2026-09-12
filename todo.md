@@ -133,3 +133,17 @@
 - [x] Verificar visualmente el lector abierto después del pulido estético y confirmar contraste de fondos, overlays y controles.
 - [x] Abrir el panel Admin después del pulido y confirmar acceso y ausencia de solapamientos.
 - [x] Revisar reseñas después del pulido en escritorio y móvil para confirmar contraste, espaciado y estados.
+
+
+## Rediseño total de identidad visual — 2026-09-12
+- [ ] Subir logo nuevo para modo claro y conservar logo oficial oscuro.
+- [ ] Activar selector de tema claro/oscuro y selección de logo por tema.
+- [ ] Rediseñar completamente navegación, inicio, XP, estanterías, tarjetas y controles.
+- [ ] Mantener Explorar y Perfil funcionales, adaptados al sistema visual.
+- [ ] Verificar responsive, TypeScript, build y pruebas Vitest.
+- [ ] Guardar checkpoint final.
+
+- [x] Logo claro nuevo subido a Manus Storage: /manus-storage/library-omega-light_d21e7f61.png.
+- [x] Logo oscuro existente conservado para el modo oscuro.
+- [x] Selector claro/oscuro verificado en navegador.
+- [x] TypeScript, build y 14 pruebas automatizadas completadas correctamente.

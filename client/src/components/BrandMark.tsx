@@ -1,30 +1,23 @@
-/**
- * Identidad visual oficial de Library Omega: gatito + símbolo Ω.
- * Se mantiene el asset del gato y se superpone el Ω para que la marca sea
- * reconocible tanto en la cabecera como en el lector y la mascota.
- */
-const CAT_IMAGE_URL = "/library-omega-cat.png";
+import { useTheme } from "@/contexts/ThemeContext";
+
+const LIGHT_LOGO_URL = "/manus-storage/library-omega-light_d21e7f61.png";
+const DARK_LOGO_URL = "/library-omega-cat.png";
 const sizeClasses = {
-  sm: "h-9 w-9 rounded-xl text-base",
-  md: "h-11 w-11 rounded-2xl text-xl",
-  lg: "h-28 w-28 rounded-[2rem] text-5xl",
+  sm: "h-10 w-10 rounded-xl",
+  md: "h-12 w-12 rounded-2xl",
+  lg: "h-32 w-32 rounded-[2rem]",
 } as const;
 export type BrandMarkSize = keyof typeof sizeClasses;
+
 export default function BrandMark({ size = "md", label = "Logo Library Omega" }: { size?: BrandMarkSize; label?: string }) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   return (
-    <span
-      role="img"
-      aria-label={label}
-      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-zinc-950 shadow-xl ${sizeClasses[size]}`}
-    >
-      <img
-        src={CAT_IMAGE_URL}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-[10%] h-[80%] w-[80%] object-contain opacity-95 invert"
-      />
-      <span className="relative z-10 font-display font-black leading-none text-zinc-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]">Ω</span>
+    <span role="img" aria-label={label} className={`brand-mark brand-mark-${theme} relative inline-flex shrink-0 items-center justify-center overflow-hidden ${sizeClasses[size]}`}>
+      <img src={isDark ? DARK_LOGO_URL : LIGHT_LOGO_URL} alt="" aria-hidden="true" className="h-full w-full object-contain invert" style={{ filter: isDark ? "invert(1)" : "none" }} />
+      <span className="sr-only text-zinc-950 drop-shadow">Ω</span>
     </span>
   );
 }
-export { CAT_IMAGE_URL };
+
+export { LIGHT_LOGO_URL, DARK_LOGO_URL };

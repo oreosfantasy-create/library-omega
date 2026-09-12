@@ -7,15 +7,17 @@ import { useLocation } from "wouter";
 import { useLibrary } from "@/lib/libraryStore";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
-import { Flame, Award, Zap, X, Library, Search, User, ArrowLeft, LogIn, LogOut, Shield } from "lucide-react";
+import { Flame, Award, Zap, X, Library, Search, User, ArrowLeft, LogIn, LogOut, Shield, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import BrandMark from "@/components/BrandMark";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const ADMIN_PASSWORD = "omega2024";
 
 export default function Navbar() {
   const { role, setRole, streak, level, xp } = useLibrary();
   const { isAuthenticated, user, logout, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [location, navigate] = useLocation();
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
@@ -49,8 +51,8 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full glass-panel border-b border-border/40">
-      <div className="container flex min-w-0 h-16 sm:h-20 items-center justify-between gap-2 sm:gap-4">
+    <header className="omega-header sticky top-0 z-50 w-full">
+      <div className="container flex min-w-0 h-[4.5rem] items-center justify-between gap-2 sm:h-24 sm:gap-5">
         {/* Marca Elite & Back Button */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
           {location !== "/" && (
@@ -62,27 +64,27 @@ export default function Navbar() {
               <ArrowLeft className="h-5 w-5" />
             </button>
           )}
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate("/")}>
+          <div className="flex min-w-0 cursor-pointer items-center gap-2.5 sm:gap-4" onClick={() => navigate("/")}>
             <div className="relative">
               <BrandMark size="sm" label="Library Omega, gatito con símbolo Omega" />
-              <div className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-primary ring-2 ring-background" />
+              <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-primary ring-2 ring-background" />
             </div>
             <div className="hidden sm:block leading-none">
-              <h1 className="font-display text-xl tracking-tight">Library <span className="text-primary/60">Omega</span></h1>
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40">Estudio Digital</p>
+              <h1 className="font-display text-xl tracking-[-0.04em] sm:text-2xl">Library <span className="text-primary">Omega</span></h1>
+              <p className="text-[8px] font-black uppercase tracking-[0.28em] text-muted-foreground">Estudio Digital</p>
             </div>
           </div>
         </div>
 
         {/* Navegación Desktop Elite */}
-        <nav aria-label="Navegación principal" className="hidden md:flex items-center gap-2 p-1.5 bg-secondary/50 rounded-2xl border border-border/50">
+        <nav aria-label="Navegación principal" className="omega-nav hidden md:flex items-center gap-1 p-1">
           {tabs.map((t) => {
             const isActive = location === t.path;
             return (
               <button
                 key={t.path}
                 onClick={() => navigate(t.path)}
-                className={`flex items-center gap-2 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] ${
                   isActive
                     ? "bg-foreground text-background shadow-lg"
                     : "text-muted-foreground hover:text-foreground hover:bg-background/50"
@@ -97,7 +99,7 @@ export default function Navbar() {
 
         {/* User & Stats Elite */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-          <div className="hidden lg:flex items-center gap-1.5 rounded-2xl border border-border/50 bg-secondary/45 p-1.5 shadow-sm" aria-label="Progreso personal">
+          <div className="omega-stats hidden lg:flex items-center gap-1 rounded-2xl p-1" aria-label="Progreso personal">
             <div className="flex items-center gap-2 rounded-xl px-2.5 py-1.5" title="Días de racha">
               <Flame className="h-4 w-4 text-orange-500" aria-hidden="true" />
               <div className="leading-none">
@@ -123,6 +125,10 @@ export default function Navbar() {
             </div>
           </div>
 
+          <button type="button" onClick={() => toggleTheme?.()} className="omega-icon-button" title={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"} aria-label={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"}>
+            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </button>
+
           {isAuthenticated ? (
             <div className="flex items-center gap-2 pl-2">
               <div className="hidden xl:flex flex-col items-end leading-none mr-2">
@@ -131,7 +137,7 @@ export default function Navbar() {
               </div>
               <button
                 onClick={() => logout()}
-                className="p-2 sm:p-3 bg-secondary/50 border border-border/50 rounded-xl sm:rounded-2xl hover:bg-destructive hover:text-destructive-foreground"
+                className="omega-icon-button hover:bg-destructive hover:text-destructive-foreground"
                 title="Cerrar sesión"
               >
                 <LogOut className="h-4 w-4" />
