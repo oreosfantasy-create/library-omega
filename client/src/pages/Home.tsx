@@ -90,18 +90,7 @@ export default function Home() {
           <AdminPanel />
         ) : (
           <div className="space-y-12 min-w-0 animate-in fade-in duration-1000">
-            <section className="hidden gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
-              <div className="catalog-card min-w-0 overflow-hidden border-none bg-foreground p-5 text-background premium-shadow sm:p-10">
-                <p className="hidden text-[10px] font-black uppercase tracking-[0.28em] text-background/55 sm:block">Estudio Digital Omega</p>
-                <div className="mt-1 flex flex-wrap gap-3 sm:mt-8">
-                  <button type="button" onClick={() => document.getElementById("omega-shelf")?.scrollIntoView({ behavior: "smooth", block: "center" })} className="omega-button bg-background text-foreground hover:bg-primary hover:text-primary-foreground">Ver mi estantería</button>
-                  <button type="button" onClick={() => window.location.assign("/explorar")} className="omega-button border border-background/25 bg-transparent text-background hover:bg-background/10">Explorar catálogo</button>
-                </div>
-              </div>
-              <div className="catalog-card min-w-0 border-none bg-secondary/40 p-6 premium-shadow sm:p-7"><XpCommandCenter /></div>
-            </section>
-
-            <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+            <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
               <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start"><CatMascot /><div className="catalog-card p-5 bg-secondary/30 border-none"><h4 className="font-display text-lg mb-4 flex items-center gap-2"><Clock className="h-4 w-4 opacity-40" />Tu actividad</h4><div className="space-y-3 text-xs"><div className="flex justify-between"><span className="opacity-60 font-bold uppercase tracking-widest">Leídos</span><span className="font-black tabular-nums">{readBooks.length}</span></div><div className="flex justify-between"><span className="opacity-60 font-bold uppercase tracking-widest">En progreso</span><span className="font-black tabular-nums">{allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).length}</span></div></div></div></aside>
               <div className="min-w-0 space-y-14">
                 {allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).length > 0 && <HomeShelf title="Continuar leyendo" eyebrow="Retoma tu aventura" books={allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).slice(0, 8)} onOpen={setOpenBook} isRead={isRead} />}

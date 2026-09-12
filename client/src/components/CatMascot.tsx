@@ -18,7 +18,7 @@ export default function CatMascot() {
     : 100;
 
   return (
-    <div className="catalog-card p-6 bg-card premium-shadow text-card-foreground">
+    <div className="catalog-card p-6 bg-card premium-shadow text-card-foreground sm:p-8">
       {/* Medalla de nivel Elite */}
       <div className="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-xl ring-4 ring-background">
         <div className="flex flex-col items-center leading-none">
@@ -27,29 +27,29 @@ export default function CatMascot() {
         </div>
       </div>
 
-      <div className="mb-6 flex justify-center">
-        <div className="relative h-32 w-32">
+      <div className="mb-7 flex justify-center">
+        <div className="relative h-40 w-40 sm:h-48 sm:w-48">
           <BrandMark size="lg" label="Logo Library Omega, gatito con símbolo Omega" />
         </div>
       </div>
 
       <div className="space-y-1">
-        <h3 className="font-display text-2xl tracking-tight">{title}</h3>
+        <h3 className="font-display text-3xl tracking-tight">{title}</h3>
         <p className="text-[10px] font-medium text-muted-foreground max-w-[200px] mx-auto leading-relaxed opacity-80">
           {message}
         </p>
       </div>
 
-      <div className="mt-8 space-y-6">
+      <div className="mt-9 space-y-7">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-secondary/50 border border-border/50">
+          <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/50 bg-secondary/50 p-4">
             <div className="flex items-center gap-1.5 text-foreground">
               <Flame className={`h-4 w-4 ${streak > 0 ? 'text-foreground' : 'opacity-40'}`} />
               <span className="text-xs font-black tabular-nums">{streak}</span>
             </div>
             <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Días Racha</span>
           </div>
-          <div className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-secondary/50 border border-border/50">
+          <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/50 bg-secondary/50 p-4">
             <div className="flex items-center gap-1.5 text-foreground">
               <Zap className="h-4 w-4" />
               <span className="text-xs font-black tabular-nums">{xp}</span>
