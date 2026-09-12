@@ -52,7 +52,7 @@ export default function Navbar() {
 
   return (
     <header className="omega-header sticky top-0 z-50 w-full">
-      <div className="container flex min-w-0 h-12 items-center justify-between gap-1 sm:h-24 sm:gap-5">
+      <div className="container flex min-w-0 h-11 items-center justify-between gap-0.5 sm:h-24 sm:gap-5">
         {/* Marca Elite & Back Button */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
           {location !== "/" && (
@@ -66,7 +66,7 @@ export default function Navbar() {
           )}
           <div className="flex min-w-0 cursor-pointer items-center gap-2.5 sm:gap-4" onClick={() => navigate("/")}>
             <div className="relative">
-              <BrandMark size="sm" label="Library Omega, gatito con símbolo Omega" />
+              <BrandMark size="nav" label="Library Omega, gatito con símbolo Omega" />
               <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-primary ring-2 ring-background" />
             </div>
             <div className="hidden sm:block leading-none">
