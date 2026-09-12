@@ -643,10 +643,10 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     }
   };
 
-  const colors = useMemo(() => ({ 
-    white: { bg: "#ffffff", text: "#121212", border: "rgba(0,0,0,0.1)" }, 
-    dark: { bg: "#0a0a0a", text: "#e0e0e0", border: "rgba(255,255,255,0.1)" }, 
-    sepia: { bg: "#f4ecd8", text: "#5b4636", border: "rgba(91,70,54,0.1)" } 
+  const colors = useMemo(() => ({
+    white: { bg: "#ffffff", text: "#000000", border: "rgba(0,0,0,0.18)" },
+    dark: { bg: "#000000", text: "#ffffff", border: "rgba(255,255,255,0.18)" },
+    sepia: { bg: "#f4ecd8", text: "#000000", border: "rgba(0,0,0,0.16)" }
   })[theme], [theme]);
 
   const sideMargins = useMemo(() => {
@@ -672,6 +672,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
         padding: 2rem ${sideMargins}rem 3rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100vh;
         pointer-events: auto;
       }
+      body, body * { color:${colors.text} !important; }
       img { max-width:100%; height:auto; display:block; margin:1.25rem auto; border-radius:0.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
       .epub-image { width:auto; }
       .pdf-page-image { width:min(100%, 48rem); object-fit:contain; background:${colors.bg}; }
