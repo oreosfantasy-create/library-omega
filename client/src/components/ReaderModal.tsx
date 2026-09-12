@@ -286,12 +286,11 @@ function flattenBody(html: string): NodeChunk[] {
           chunks.push({ kind: "text", value: "\n", block: "br" });
         } else if (["h1", "h2", "h3"].includes(tag)) {
           chunks.push({ kind: "text", value: cleanReaderText(el.textContent || ""), block: tag });
-          chunks.push({ kind: "text", value: "\n", block: "br" });
+        } else if (["p", "li", "td", "blockquote"].includes(tag)) {
+          const text = cleanReaderText(el.textContent || "");
+          if (text) chunks.push({ kind: "text", value: text, block: tag });
         } else {
           walk(el as Element);
-          if (["p", "li", "td", "div", "tr", "blockquote", "figure"].includes(tag)) {
-            chunks.push({ kind: "text", value: "\n", block: tag });
-          }
         }
       }
     }
@@ -333,8 +332,9 @@ function paginate(chunks: NodeChunk[], pageHeight: number, contentWidth: number,
   for (let ci = 0; ci < chunks.length; ci++) {
     const ch = chunks[ci];
     let h = ch.kind === "img" ? (ch.block === "pdf-page" ? pageHeight : Math.min(pageHeight - 32, 250)) : measureTextHeight(ch.value, style);
-    if (ch.kind === "text" && ch.block !== "br") h += Math.ceil(fontSize * 16);
-    if (ch.block === "h1" || ch.block === "h2" || ch.block === "h3") h += Math.ceil(fontSize * 18);
+    if (ch.kind === "text" && ch.block === "br") h = Math.ceil(fontSize * 8);
+    if (ch.kind === "text" && ["p", "li", "td", "div", "tr", "blockquote", "figure"].includes(ch.block || "")) h = Math.ceil(fontSize * 12);
+    if (ch.block === "h1" || ch.block === "h2" || ch.block === "h3") h += Math.ceil(fontSize * 12);
     if (used + h > pageHeight && used > 0) {
       page++;
       used = 0;
@@ -544,6 +544,10 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     if (book?.fileType === "pdf") return pdfPageImage ? [pdfPageImage] : [];
     return allChunks.filter((_, index) => paginated.chunkPageIdx[index] === page);
   }, [book?.fileType, pdfPageImage, allChunks, paginated.chunkPageIdx, page]);
+  const nextPageChunks = useMemo(() => {
+    if (book?.fileType !== "epub") return [];
+    return allChunks.filter((_, index) => paginated.chunkPageIdx[index] === page + 1);
+  }, [book?.fileType, allChunks, paginated.chunkPageIdx, page]);
   
   useEffect(() => {
     if (book && isReady) {
@@ -636,26 +640,30 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     return window.innerWidth < 640 ? 1 : 4;
   }, []);
 
-  const pageHtml = useMemo(() => {
-    if (!paginated.chunkPageIdx.length) return "";
-    return currentPageChunks
-      .map(c => c.kind === "img" ? `<img src="${escapeHtml(c.value)}" alt="${escapeHtml(c.altText || "Página del documento PDF")}" class="${c.block === "pdf-page" ? "pdf-page-image" : "epub-image"}" />` : `<p>${escapeHtml(c.value).replace(/\n/g, '<br/>')}</p>`)
-      .join("");
-  }, [currentPageChunks, paginated.chunkPageIdx]);
+  const renderPageHtml = useCallback((chunks: NodeChunk[]) => chunks.map(c => {
+    if (c.kind === "img") return `<img src="${escapeHtml(c.value)}" alt="${escapeHtml(c.altText || "Página del documento PDF")}" class="${c.block === "pdf-page" ? "pdf-page-image" : "epub-image"}" />`;
+    if (c.block === "br") return "<div class=\"reader-break\"></div>";
+    const tag = c.block === "h1" || c.block === "h2" || c.block === "h3" ? c.block : "p";
+    return `<${tag}>${escapeHtml(c.value).replace(/\n/g, '<br/>')}</${tag}>`;
+  }).join(""), []);
 
-  const srcDoc = useMemo(() => `<!DOCTYPE html><html><head>
+  const pageHtml = useMemo(() => renderPageHtml(currentPageChunks), [renderPageHtml, currentPageChunks]);
+  const nextPageHtml = useMemo(() => renderPageHtml(nextPageChunks), [renderPageHtml, nextPageChunks]);
+
+  const makeSrcDoc = useCallback((html: string) => `<!DOCTYPE html><html><head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-      body { 
+      body {
         background:${colors.bg}; color:${colors.text}; font-family:${fontFamily}; font-size:${fontSize}rem; line-height:${lineHeight}; 
-        padding: 1.5rem ${sideMargins}rem 1.5rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:justify; word-wrap:break-word; box-sizing:border-box; height:100vh;
+        padding: 2rem ${sideMargins}rem 3rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100vh;
         pointer-events: auto;
       }
-      img { max-width:100%; height:auto; display:block; margin:1.5rem auto; border-radius:0.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+      img { max-width:100%; height:auto; display:block; margin:1.25rem auto; border-radius:0.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
       .epub-image { width:auto; }
       .pdf-page-image { width:min(100%, 48rem); object-fit:contain; background:${colors.bg}; }
-      p { margin:0 0 1rem; break-inside:avoid; }
-      h1,h2,h3 { margin:0 0 1.25rem; line-height:1.2; break-after:avoid; }
+      p { margin:0 0 0.72rem; break-inside:avoid; text-indent:0; }
+      h1,h2,h3 { margin:0 0 1rem; line-height:1.2; break-after:avoid; }
+      .reader-break { height:0.35rem; }
       ::selection { background: var(--primary); color: white; }
       body::-webkit-scrollbar { width: 4px; }
       body::-webkit-scrollbar-thumb { background: ${colors.border}; border-radius: 10px; }
@@ -674,7 +682,10 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
         }
       });
     </script>
-    </head><body>${pageHtml}</body></html>`, [colors, fontFamily, fontSize, lineHeight, sideMargins, pageHtml]);
+    </head><body>${html}</body></html>`, [colors, fontFamily, fontSize, lineHeight, sideMargins]);
+
+  const srcDoc = useMemo(() => makeSrcDoc(pageHtml), [makeSrcDoc, pageHtml]);
+  const nextSrcDoc = useMemo(() => makeSrcDoc(nextPageHtml), [makeSrcDoc, nextPageHtml]);
 
   if (!book) return null;
 
@@ -733,11 +744,20 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
           )}
 
           {isReady && book.fileType !== "pdf" && (
-            <iframe
-              srcDoc={srcDoc}
-              className="w-full h-full border-none"
-              title="Reader Viewport"
-            />
+            <div className="reader-spread flex h-full w-full items-stretch justify-center gap-0 overflow-hidden bg-secondary/30 p-2 sm:gap-3 sm:p-6">
+              <iframe
+                srcDoc={srcDoc}
+                className="reader-page h-full min-w-0 flex-1 border-none bg-background"
+                title="Reader Viewport"
+              />
+              {page + 1 < readerPageCount && (
+                <iframe
+                  srcDoc={nextSrcDoc}
+                  className="reader-page hidden h-full min-w-0 flex-1 border-none bg-background sm:block"
+                  title={`Página ${page + 2}`}
+                />
+              )}
+            </div>
           )}
 
           {isReady && book.fileType === "pdf" && !pdfNativeFallback && (
@@ -856,14 +876,14 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
               <button onClick={() => setPdfZoom(100)} aria-label="Restablecer zoom PDF" className="hidden h-8 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider hover:bg-background sm:block">Ajustar</button>
             </div>
           )}
-          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.max(0, p - 1)); }} aria-label="Página anterior" disabled={page === 0} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
+          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.max(0, p - (book.fileType === "epub" ? 2 : 1))); }} aria-label="Página anterior" disabled={page === 0} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
             <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
           <div className="flex min-w-[80px] flex-col items-center">
             <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Página</span>
-            <span className="text-[11px] sm:text-sm font-black tabular-nums">{book.fileType === "pdf" && !readerPageCount ? "—" : `${page + 1} / ${readerPageCount}`}</span>
+            <span className="text-[11px] sm:text-sm font-black tabular-nums">{book.fileType === "pdf" && !readerPageCount ? "—" : `${page + 1}${book.fileType === "epub" && page + 1 < readerPageCount ? `–${Math.min(page + 2, readerPageCount)}` : ""} / ${readerPageCount}`}</span>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.min(Math.max(0, readerPageCount - 1), p + 1)); }} aria-label="Página siguiente" disabled={!readerPageCount || page >= readerPageCount - 1} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
+          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.min(Math.max(0, readerPageCount - 1), p + (book.fileType === "epub" ? 2 : 1))); }} aria-label="Página siguiente" disabled={!readerPageCount || page >= readerPageCount - 1} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
             <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
         </div>
