@@ -42,31 +42,31 @@ export default function CatMascot() {
 
       <div className="mt-9 space-y-7">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/50 bg-secondary/50 p-4">
-            <div className="flex items-center gap-1.5 text-foreground">
-              <Flame className={`h-4 w-4 ${streak > 0 ? 'text-foreground' : 'opacity-40'}`} />
-              <span className="text-xs font-black tabular-nums">{streak}</span>
+          <div className="group flex flex-col items-center gap-2 rounded-3xl border border-border/60 bg-foreground p-5 text-background shadow-lg transition-transform hover:-translate-y-1">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-foreground shadow-inner">
+              <Flame className={`h-7 w-7 ${streak > 0 ? 'text-foreground' : 'opacity-40'}`} strokeWidth={2.5} />
             </div>
-            <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Días Racha</span>
+            <span className="text-2xl font-black tabular-nums leading-none">{streak}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.18em] text-background/60">Días de racha</span>
           </div>
-          <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/50 bg-secondary/50 p-4">
-            <div className="flex items-center gap-1.5 text-foreground">
-              <Zap className="h-4 w-4" />
-              <span className="text-xs font-black tabular-nums">{xp}</span>
+          <div className="group flex flex-col items-center gap-2 rounded-3xl border border-border/60 bg-secondary/80 p-5 text-foreground shadow-lg transition-transform hover:-translate-y-1">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-inner">
+              <Zap className="h-7 w-7" strokeWidth={2.5} />
             </div>
-            <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Total XP</span>
+            <span className="text-2xl font-black tabular-nums leading-none">{xp}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.18em] opacity-55">XP total</span>
           </div>
         </div>
 
         {/* Barra de XP Elite */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest opacity-60">
-            <span>Progreso de Nivel</span>
-            <span className="tabular-nums">{progressPercent}%</span>
+        <div className="rounded-3xl border border-border/60 bg-secondary/50 p-5 shadow-inner">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Progreso de nivel</span>
+            <span className="text-2xl font-black tabular-nums leading-none">{progressPercent}%</span>
           </div>
-          <div className="xp-progress-bar bg-secondary/80 h-3 p-0.5 border border-border/50">
+          <div className="xp-progress-bar h-5 rounded-full border-2 border-border/60 bg-background/70 p-1 shadow-inner">
             <div
-              className="xp-progress-fill rounded-full shadow-[0_0_12px_rgba(0,0,0,0.1)]"
+              className="xp-progress-fill h-full rounded-full bg-foreground shadow-[0_0_16px_rgba(0,0,0,0.28)] transition-all duration-700"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
