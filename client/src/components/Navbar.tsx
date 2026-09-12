@@ -64,11 +64,11 @@ export default function Navbar() {
           )}
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate("/")}>
             <div className="relative">
-              <BrandMark size="md" label="Library Omega, gatito con símbolo Omega" />
+              <BrandMark size="sm" label="Library Omega, gatito con símbolo Omega" />
               <div className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-primary ring-2 ring-background" />
             </div>
             <div className="hidden sm:block leading-none">
-              <h1 className="font-display text-2xl tracking-tight">Library <span className="text-primary/60">Omega</span></h1>
+              <h1 className="font-display text-xl tracking-tight">Library <span className="text-primary/60">Omega</span></h1>
               <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40">Estudio Digital</p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function Navbar() {
               className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-6 py-2.5 sm:py-3 bg-foreground text-background text-[10px] font-black uppercase tracking-widest rounded-xl sm:rounded-2xl hover:opacity-90 shadow-xl disabled:opacity-50"
             >
               <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Entrar</span>
+              <span className="hidden sm:inline">Entrar con Google</span>
             </button>
           )}
 

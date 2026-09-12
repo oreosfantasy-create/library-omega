@@ -13,7 +13,7 @@ import CaptchaGate from "@/components/CaptchaGate";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
-import { Sparkles, BookMarked, Filter, MessageSquare, Star, Send, BookOpen, Clock, Award, Flame } from "lucide-react";
+import { Sparkles, BookMarked, Filter, MessageSquare, Star, Send, BookOpen, Clock, Award, Flame, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -89,69 +89,27 @@ export default function Home() {
         {role === "admin" ? (
           <AdminPanel />
         ) : (
-          <div className="grid gap-12 lg:grid-cols-[320px_1fr]">
-            {/* Sidebar Elite */}
-            <aside className="lg:sticky lg:top-28 lg:self-start space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
-              <CatMascot />
-              
-              <div className="catalog-card p-6 bg-secondary/30 border-none premium-shadow">
-                <h4 className="font-display text-lg mb-4 flex items-center gap-2">
-                  <Clock className="h-4 w-4 opacity-40" />
-                  Tu Actividad
-                </h4>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="opacity-60 font-bold uppercase tracking-widest">Leídos</span>
-                    <span className="font-black tabular-nums">{readBooks.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="opacity-60 font-bold uppercase tracking-widest">En Progreso</span>
-                    <span className="font-black tabular-nums">{allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).length}</span>
-                  </div>
+          <div className="space-y-12 min-w-0 animate-in fade-in duration-1000">
+            <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
+              <div className="catalog-card min-w-0 overflow-hidden border-none bg-foreground p-7 text-background premium-shadow sm:p-10">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-background/55">Estudio Digital Omega</p>
+                <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:text-6xl">Tu biblioteca merece un lugar especial.</h2>
+                <p className="mt-5 max-w-xl text-sm leading-7 text-background/65">Retoma tus lecturas, gana experiencia y ordena tus próximos mundos en una estantería hecha para ti.</p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <button type="button" onClick={() => document.getElementById("omega-shelf")?.scrollIntoView({ behavior: "smooth", block: "center" })} className="omega-button bg-background text-foreground hover:bg-primary hover:text-primary-foreground">Ver mi estantería</button>
+                  <button type="button" onClick={() => window.location.assign("/explorar")} className="omega-button border border-background/25 bg-transparent text-background hover:bg-background/10">Explorar catálogo</button>
                 </div>
               </div>
-            </aside>
+              <div className="catalog-card min-w-0 border-none bg-secondary/40 p-6 premium-shadow sm:p-7"><XpCommandCenter /></div>
+            </section>
 
-            {/* Contenido Elite */}
-            <div className="space-y-16 min-w-0 animate-in fade-in duration-1000">
-              {/* Continuar leyendo Elite */}
-              {allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).length > 0 && (
-                <section className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-foreground text-background rounded-xl shadow-lg"><BookOpen className="h-5 w-5" /></div>
-                      <h2 className="font-display text-3xl tracking-tight">Continuar leyendo</h2>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
-                    {allBooks
-                      .filter(b => (b.lastPage || 0) > 0 && !isRead(b.id))
-                      .slice(0, 4)
-                      .map((book, i) => (
-                        <BookCard key={book.id} book={book} index={i} onOpen={setOpenBook} read={false} />
-                      ))}
-                  </div>
-                </section>
-              )}
-
-              {/* Recomendados Elite */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 text-primary rounded-xl"><Sparkles className="h-5 w-5" /></div>
-                  <h2 className="font-display text-3xl tracking-tight">Selección Omega</h2>
-                </div>
-                {recommendedBooks.length === 0 ? (
-                  <div className="catalog-card p-12 text-center border-dashed border-2 border-border/50">
-                    <p className="font-display text-xl opacity-40">Nuevos títulos pronto...</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
-                    {recommendedBooks.map((book, i) => (
-                      <BookCard key={book.id} book={book} index={i} onOpen={setOpenBook} read={isRead(book.id)} />
-                    ))}
-                  </div>
-                )}
-              </section>
+            <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+              <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start"><CatMascot /><div className="catalog-card p-5 bg-secondary/30 border-none"><h4 className="font-display text-lg mb-4 flex items-center gap-2"><Clock className="h-4 w-4 opacity-40" />Tu actividad</h4><div className="space-y-3 text-xs"><div className="flex justify-between"><span className="opacity-60 font-bold uppercase tracking-widest">Leídos</span><span className="font-black tabular-nums">{readBooks.length}</span></div><div className="flex justify-between"><span className="opacity-60 font-bold uppercase tracking-widest">En progreso</span><span className="font-black tabular-nums">{allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).length}</span></div></div></div></aside>
+              <div className="min-w-0 space-y-14">
+                {allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).length > 0 && <HomeShelf title="Continuar leyendo" eyebrow="Retoma tu aventura" books={allBooks.filter(b => (b.lastPage || 0) > 0 && !isRead(b.id)).slice(0, 8)} onOpen={setOpenBook} isRead={isRead} />}
+                <HomeShelf id="omega-shelf" title="Selección Omega" eyebrow="Tu estantería" books={recommendedBooks} onOpen={setOpenBook} isRead={isRead} />
+              </div>
+            </div>
 
               {/* Catálogo con Filtros Elite */}
               <section className="space-y-8">
@@ -243,7 +201,6 @@ export default function Home() {
                   <div className="min-w-0 rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 sm:p-6"><ReviewForm /></div>
                 </div>
               </section>
-            </div>
           </div>
         )}
       </main>
@@ -256,6 +213,28 @@ export default function Home() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function XpCommandCenter() {
+  const { level, xp, streak, xpProgressInfo } = useLibrary();
+  const percent = xpProgressInfo.levelTarget > 0 ? Math.round((xpProgressInfo.inLevel / xpProgressInfo.levelTarget) * 100) : 100;
+  return (
+    <div className="rounded-[1.5rem] bg-foreground p-5 text-background sm:p-6">
+      <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-background/55">Tu energía</p><h3 className="mt-2 font-display text-3xl">Nivel {level}</h3></div><Zap className="h-7 w-7 text-primary" /></div>
+      <div className="mt-7 flex items-end justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-widest text-background/45">XP total</p><p className="mt-1 text-5xl font-black tracking-tight">{xp}</p></div><div className="text-right"><p className="text-[9px] font-black uppercase tracking-widest text-background/45">Racha</p><p className="mt-1 flex items-center gap-1 text-2xl font-black"><Flame className="h-5 w-5 text-orange-400" />{streak}</p></div></div>
+      <div className="mt-7"><div className="mb-2 flex justify-between text-[9px] font-black uppercase tracking-widest text-background/55"><span>Próximo nivel</span><span>{percent}%</span></div><div className="h-3 overflow-hidden rounded-full bg-background/15"><div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${percent}%` }} /></div></div>
+      <p className="mt-4 text-xs leading-5 text-background/50">Lee, descubre y convierte cada página en experiencia.</p>
+    </div>
+  );
+}
+
+function HomeShelf({ id, eyebrow, title, books, onOpen, isRead }: { id?: string; eyebrow: string; title: string; books: Book[]; onOpen: (book: Book) => void; isRead: (id: string) => boolean }) {
+  return (
+    <section id={id} className="space-y-5 scroll-mt-24">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">{eyebrow}</p><h2 className="font-display text-3xl tracking-tight sm:text-4xl">{title}</h2></div><span className="text-[10px] font-black uppercase tracking-widest opacity-40">{books.length} tomos</span></div>
+      {books.length === 0 ? <div className="catalog-card border-dashed p-10 text-center"><p className="font-display text-xl opacity-40">Nuevos títulos pronto...</p></div> : <div className="shelf-stack"><div className="shelf-books">{books.slice(0, 8).map((book, i) => <div key={book.id} className="shelf-book-wrap"><BookCard book={book} index={i} onOpen={onOpen} read={isRead(book.id)} /></div>)}</div><div className="shelf-plank" /></div>}
+    </section>
   );
 }
 
