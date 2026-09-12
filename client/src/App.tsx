@@ -4,16 +4,22 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LibraryProvider } from "./lib/libraryStore";
+import Explore from "./pages/Explore";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
+  // SPA sin dependencias de la URL: Home siempre visible.
+  // Esto permite abrir la app con doble clic (protocolo file://)
+  // donde la ruta del navegador no es "/".
+  void NotFound;
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
+      <Route path="/">{() => <Home />}</Route>
+      <Route path="/explorar">{() => <Explore />}</Route>
+      <Route path="/perfil">{() => <Profile />}</Route>
+      <Route>{() => <NotFound />}</Route>
     </Switch>
   );
 }
@@ -28,11 +34,13 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider
         defaultTheme="light"
-        // switchable
+        switchable
       >
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <Toaster position="bottom-center" mobileOffset={{ bottom: "5.5rem" }} />
+          <LibraryProvider>
+            <Router />
+          </LibraryProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

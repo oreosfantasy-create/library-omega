@@ -1,28 +1,212 @@
 import { COOKIE_NAME } from "@shared/const";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import * as db from "./db";
+import { storageGetSignedUrl, storagePut } from "./storage";
+
+// Importación dinámica para evitar errores de ESM en tiempo de carga
+async function extractCoverBuffer(buffer: Buffer, type: "epub" | "pdf"): Promise<{ buffer: Buffer; mime: string } | null> {
+  try {
+    const { extractCoverBuffer: extractor } = await import("./cover-extract.ts");
+    return await extractor(buffer, type);
+  } catch (e) {
+    console.error("Error cargando extractor de portadas:", e);
+    return null;
+  }
+}
+
+const ADMIN_PASSWORD = "omega2024";
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  access: router({
+    log: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        await db.logAccess({ email: input.email });
+        return { success: true } as const;
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      // Los correos y horarios son datos privados: solo el rol admin autenticado puede verlos.
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const rows = await db.listAccessLogs();
+      return rows.map(r => ({ id: r.id, email: r.email, timestamp: r.timestamp.getTime() }));
+    }),
+  }),
+
+  books: router({
+    list: publicProcedure.query(async () => {
+      const rows = await db.listBooks();
+      return rows.map((b) => ({
+        id: b.id,
+        title: b.title,
+        fileName: b.fileName,
+        fileType: b.fileType,
+        category: b.category,
+        age: b.age ?? "Universal",
+        url: `/manus-storage/${b.storageKey}`,
+        coverUrl: b.coverKey ? `/manus-storage/${b.coverKey}` : null,
+        addedAt: b.createdAt.getTime(),
+      }));
+    }),
+
+    sync: protectedProcedure.query(async ({ ctx }) => {
+      const stats = await db.getOrCreateUserStats(ctx.user.id);
+      const progress = await db.listUserProgress(ctx.user.id);
+      return {
+        stats: { xp: stats.xp, streak: stats.streakCount, lastVisit: stats.lastVisitDate },
+        progress: progress.map(p => ({ bookId: p.bookId, lastPage: p.lastPage, isFinished: p.isFinished === 1 })),
+      };
+    }),
+
+    updateProgress: protectedProcedure
+      .input(z.object({ bookId: z.string(), lastPage: z.number().int().min(0), isFinished: z.boolean().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.upsertUserProgress(ctx.user.id, input.bookId, { lastPage: input.lastPage, isFinished: input.isFinished ? 1 : 0 });
+        return { success: true };
+      }),
+
+    updateStats: protectedProcedure
+      .input(z.object({ xp: z.number().int().min(0), streak: z.number().int().min(0), lastVisit: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateUserStats(ctx.user.id, { xp: input.xp, streakCount: input.streak, lastVisitDate: input.lastVisit });
+        return { success: true };
+      }),
+
+    add: publicProcedure
+      .input(z.object({
+        password: z.string(),
+        fileName: z.string().min(1).max(512),
+        category: z.string().max(64).default("Otros"),
+        age: z.string().max(32).default("Universal"),
+        dataBase64: z.string().min(1),
+        mimeType: z.string().default("application/octet-stream"),
+        coverBase64: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.password !== ADMIN_PASSWORD) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const ext = input.fileName.toLowerCase().endsWith(".epub") ? "epub" : "pdf";
+        const buffer = Buffer.from(input.dataBase64, "base64");
+
+        const { key: storageKey } = await storagePut(`libros/${id}.${ext}`, buffer, input.mimeType);
+
+        let coverKey: string | null = null;
+        if (input.coverBase64) {
+          try {
+            const coverBuf = Buffer.from(input.coverBase64, "base64");
+            const { key } = await storagePut(`portadas/${id}.jpg`, coverBuf, "image/jpeg");
+            coverKey = key;
+          } catch {}
+        } else {
+          try {
+            const cover = await extractCoverBuffer(buffer, ext);
+            if (cover) {
+              const { key } = await storagePut(`portadas/${id}.jpg`, cover.buffer, cover.mime);
+              coverKey = key;
+            }
+          } catch {}
+        }
+
+        await db.insertBook({
+          id,
+          title: input.fileName.replace(/\.(pdf|epub)$/i, "").trim(),
+          fileName: input.fileName,
+          fileType: ext,
+          category: input.category,
+          age: input.age,
+          storageKey,
+          coverKey,
+        });
+
+        return { id } as const;
+      }),
+
+    remove: protectedProcedure
+      .input(z.object({ id: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        await db.deleteBook(input.id);
+        return { success: true } as const;
+      }),
+
+    updateMetadata: protectedProcedure
+      .input(z.object({ id: z.string().min(1), category: z.string().optional(), age: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        await db.updateBookMetadata(input.id, { category: input.category, age: input.age });
+        return { success: true } as const;
+      }),
+
+    updateBookmark: protectedProcedure
+      .input(z.object({ id: z.string().min(1), lastPage: z.number().int().min(0) }))
+      .mutation(async ({ ctx, input }) => {
+        await db.upsertUserProgress(ctx.user.id, input.id, { lastPage: input.lastPage });
+        return { success: true } as const;
+      }),
+
+    regenCovers: publicProcedure
+      .input(z.object({ password: z.string() }))
+      .mutation(async ({ input }) => {
+        if (input.password !== ADMIN_PASSWORD) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const books = await db.listBooks();
+        const results: { id: string; title: string; ok: boolean }[] = [];
+        for (const b of books) {
+          if (b.coverKey) {
+            results.push({ id: b.id, title: b.title, ok: false });
+            continue;
+          }
+          try {
+            const url = await storageGetSignedUrl(b.storageKey);
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const buf = Buffer.from(await res.arrayBuffer());
+            const cover = await extractCoverBuffer(buf, b.fileType as any);
+            if (cover) {
+              const { key } = await storagePut(`portadas/${b.id}.jpg`, cover.buffer, cover.mime);
+              await db.updateBookMetadata(b.id, { coverKey: key });
+              results.push({ id: b.id, title: b.title, ok: true });
+            }
+          } catch {
+            results.push({ id: b.id, title: b.title, ok: false });
+          }
+        }
+        return { results } as const;
+      }),
+  }),
+
+  reviews: router({
+    add: protectedProcedure
+      .input(z.object({ bookId: z.string().optional(), rating: z.number().min(1).max(5), comment: z.string().min(1).max(1000) }))
+      .mutation(async ({ ctx, input }) => {
+        await db.insertReview({ ...input, userId: ctx.user.id, userEmail: ctx.user.email || "unknown" });
+        return { success: true } as const;
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const rows = await db.listReviews();
+      return rows.map(r => ({ ...r, createdAt: r.createdAt.getTime() }));
+    }),
+    remove: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        await db.deleteReview(input.id);
+        return { success: true } as const;
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

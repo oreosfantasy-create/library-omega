@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { accessLogs, books, InsertAccessLog, InsertBook, InsertUser, users, reviews, InsertReview, userProgress, userStats } from "../drizzle/schema";
+import { sql } from "drizzle-orm";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +90,121 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/** Listar todos los libros de la biblioteca (público, cualquier dispositivo los ve). */
+export async function listBooks() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(books).orderBy(asc(books.createdAt));
+}
+
+/** Insertar un libro con sus referencias de almacenamiento. */
+export async function insertBook(book: InsertBook) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(books).values(book);
+}
+
+/** Actualizar metadatos de clasificación de un libro (género y/o edad). */
+export async function updateBookMetadata(
+  id: string,
+  meta: { category?: string; age?: string; coverKey?: string },
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updates: Record<string, string | number> = {};
+  if (meta.category !== undefined) updates.category = meta.category;
+  if (meta.age !== undefined) updates.age = meta.age;
+  if (meta.coverKey !== undefined) updates.coverKey = meta.coverKey;
+  if (Object.keys(updates).length === 0) return;
+  await db.update(books).set(updates).where(eq(books.id, id));
+}
+
+/** Obtener o crear estadísticas de usuario. */
+export async function getOrCreateUserStats(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
+  if (existing.length > 0) return existing[0];
+  
+  await db.insert(userStats).values({ userId });
+  return { userId, xp: 0, streakCount: 0, lastVisitDate: null };
+}
+
+/** Actualizar estadísticas de usuario (XP, Racha). */
+export async function updateUserStats(userId: number, stats: { xp?: number; streakCount?: number; lastVisitDate?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(userStats).set(stats).where(eq(userStats.userId, userId));
+}
+
+/** Obtener progreso de lectura de un usuario para un libro. */
+export async function getUserProgress(userId: number, bookId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const res = await db.select().from(userProgress).where(sql`${userProgress.userId} = ${userId} AND ${userProgress.bookId} = ${bookId}`).limit(1);
+  return res.length > 0 ? res[0] : null;
+}
+
+/** Actualizar o insertar progreso de lectura. */
+export async function upsertUserProgress(userId: number, bookId: string, progress: { lastPage?: number; isFinished?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await getUserProgress(userId, bookId);
+  if (existing) {
+    await db.update(userProgress).set(progress).where(eq(userProgress.id, existing.id));
+  } else {
+    await db.insert(userProgress).values({ userId, bookId, ...progress });
+  }
+}
+
+/** Listar todo el progreso de un usuario. */
+export async function listUserProgress(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(userProgress).where(eq(userProgress.userId, userId));
+}
+
+/** Eliminar un libro por su id. */
+export async function deleteBook(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(books).where(eq(books.id, id));
+}
+
+/** Registrar un acceso de usuario tras pasar el CAPTCHA. */
+export async function logAccess(log: InsertAccessLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(accessLogs).values(log);
+}
+
+/** Listar los últimos 100 registros de acceso para el panel de Admin. */
+export async function listAccessLogs() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Mostrar los accesos más recientes primero.
+  return db.select().from(accessLogs).orderBy(desc(accessLogs.timestamp), desc(accessLogs.id)).limit(100);
+}
+
+/** Registrar una reseña privada. */
+export async function insertReview(review: InsertReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(reviews).values(review);
+}
+
+/** Listar todas las reseñas (solo admin las ve). */
+export async function listReviews() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(reviews).orderBy(asc(reviews.createdAt));
+}
+
+/** Eliminar una reseña. */
+export async function deleteReview(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(reviews).where(eq(reviews.id, id));
+}

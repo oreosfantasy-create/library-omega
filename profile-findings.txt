@@ -1,0 +1,8 @@
+Verificación posterior al shell de navegación 2026-08-24:
+- Perfil en escritorio y móvil muestra Navbar, botón Perfil activo, botón de regreso y margen inferior para el menú fijo.
+- Explore también recibe Navbar y margen móvil para evitar rutas secundarias sin navegación.
+- El lector real abrió Romeo_y_Julieta tras el cambio; la cabecera del lector, controles de lectura y navegación anterior/siguiente permanecen visibles.
+Verificación real posterior 2026-08-24:
+La ruta /perfil abre correctamente desde el botón Perfil. La vista muestra la cabecera compartida con botón de regreso, Biblioteca, Explorar, Perfil activo, acceso Admin y sesión; debajo se muestran Tu Legado, la mascota, nivel, progreso, actividad, medallas y misiones. El lector real también abrió Romeo_y_Julieta después del cambio de shell.
+Tema oscuro verificado en navegador: la captura real posterior al cambio muestra /perfil con fondo oscuro, Navbar visible, Perfil activo, botón de tema y contenido de mascota/estadísticas con contraste legible. El modo claro se verificó en las capturas de la misma ruta antes de alternar el tema.
+Tras el pulido estético global, la ruta /perfil abrió correctamente en tema oscuro y el botón Biblioteca devolvió a Home sin errores. La Navbar, las tarjetas y el contenido mantienen contraste y no se observaron solapamientos en la navegación.

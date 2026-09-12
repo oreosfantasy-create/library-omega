@@ -13,8 +13,15 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 // with "invalid oauth state". It returns void by design, so there is no URL to
 // stash across renders.
 export const startLogin = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
+  const oauthPortalUrl = String(import.meta.env.VITE_OAUTH_PORTAL_URL || "").replace(/\/+$/, "");
+  const appId = String(import.meta.env.VITE_APP_ID || "");
+
+  if (!oauthPortalUrl || !appId) {
+    console.error("[OAuth] Faltan VITE_OAUTH_PORTAL_URL o VITE_APP_ID en el despliegue.");
+    window.alert("El inicio con Google no está configurado. Añade VITE_OAUTH_PORTAL_URL y VITE_APP_ID en Vercel y vuelve a desplegar.");
+    return;
+  }
+
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
 
   const nonce = crypto.randomUUID();

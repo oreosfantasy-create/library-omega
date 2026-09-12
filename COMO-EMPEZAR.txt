@@ -1,0 +1,37 @@
+=============================================
+ LIBRARY OMEGA - Como empezar (Windows)
+=============================================
+
+1. Instalar Node.js (si no lo tienes):
+   Descarga el instalador desde https://nodejs.org/ (version LTS)
+   e instalalo dando clic en "Siguiente" hasta el final.
+
+2. Abrir la consola de comandos (CMD) o PowerShell.
+
+3. Navegar hasta la carpeta descomprimida:
+   cd C:\ruta\donde\descomprimiste\biblioteca-gamificada
+
+   (Truco: escribe "cd " y arrastra la carpeta dentro de la ventana)
+
+4. Instalar las dependencias (solo la primera vez):
+   npm install
+
+5. Iniciar la aplicacion:
+   npm run dev
+
+6. Abrir el navegador en la direccion que aparece,
+   normalmente: http://localhost:5173
+
+----- Como usar la app -----
+- Al abrirla esta en modo LECTOR: se ven los libros,
+  se puede leer y descargar, pero NO subir.
+- Para subir libros: clic en el boton "ADMIN" de la
+  barra superior e ingresa la contrasena: omega2024
+
+----- Nota importante -----
+Los libros se guardan en el NAVEGADOR de esa computadora.
+Si llevas esta carpeta a otra PC, el admin debe subir
+los libros una vez en esa PC y desde entonces todos los
+lectores en esa PC los veran.
+
+=============================================

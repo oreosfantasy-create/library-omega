@@ -1,0 +1,1 @@
+ALTER TABLE `books` ADD `age` varchar(32) DEFAULT 'Universal' NOT NULL;

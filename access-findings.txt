@@ -1,0 +1,6 @@
+Diagnóstico inicial 2026-08-24:
+La base de datos contiene 510 registros en access_logs y existen usuarios con rol admin. El panel anterior consultaba access.list como protectedProcedure, pero el rol Admin de la interfaz se activa con la contraseña local en Navbar; por eso la consulta podía devolver FORBIDDEN y la tabla quedaba vacía sin mensaje de error. Se ajustó la consulta para usar la misma credencial y se añadieron estados de carga, error, vacío y actualización.
+Verificación visual real 2026-08-24:
+Tras activar Acceso Elite y abrir la pestaña Accesos, el panel muestra Personas que ingresaron, 100 registros, correos reales y fechas/horas ordenadas desde las entradas más recientes. Se confirma que la tabla ya no queda silenciosamente vacía.
+Refuerzo de seguridad 2026-08-24:
+Se volvió a protectedProcedure para access.list. AdminPanel consulta sin contraseña del frontend y habilita la llamada solo con sesión autenticada cuyo user.role sea admin; lectores y visitantes reciben estado Historial protegido. La tabla usa overflow-x-auto y min-width para móviles sin cortar correos ni fechas. La base confirma que ianvera0101@gmail.com tiene rol admin y que existen 510 accesos.

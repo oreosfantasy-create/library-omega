@@ -17,8 +17,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
 
   if (!isUnauthorized) return;
-
-  startLogin();
+  
+  // No redirigir automáticamente para permitir el modo invitado con CAPTCHA
+  console.warn("[Auth] Sesión no iniciada. Redirección automática desactivada.");
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -79,3 +80,11 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </trpc.Provider>
 );
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.log('SW registration failed: ', err);
+    });
+  });
+}

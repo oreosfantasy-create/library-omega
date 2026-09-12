@@ -1,0 +1,10 @@
+node_modules
+.dist
+dist
+coverage
+.manus-logs
+*.log
+.env
+.env.*
+!.env.example
+screenshots

@@ -1,0 +1,1 @@
+ALTER TABLE `books` ADD `lastPage` int DEFAULT 0 NOT NULL;

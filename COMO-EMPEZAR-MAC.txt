@@ -1,0 +1,27 @@
+=============================================
+ LIBRARY OMEGA - Como empezar (Mac)
+=============================================
+
+1. Instalar Node.js (si no lo tienes):
+   https://nodejs.org/ (version LTS)
+
+2. Abrir la app "Terminal".
+
+3. Navegar hasta la carpeta descomprimida:
+   cd /ruta/donde/descomprimiste/biblioteca-gamificada
+
+4. Instalar las dependencias (solo la primera vez):
+   npm install
+
+5. Iniciar la aplicacion:
+   npm run dev
+
+6. Abrir el navegador en: http://localhost:5173
+
+----- Como usar la app -----
+- Al abrirla esta en modo LECTOR: se ven los libros,
+  se puede leer y descargar, pero NO subir.
+- Para subir libros: clic en "ADMIN" en la barra superior
+  e ingresa la contrasena: omega2024
+
+=============================================
