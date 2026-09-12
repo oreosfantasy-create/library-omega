@@ -94,7 +94,6 @@ export default function Home() {
               <div className="catalog-card min-w-0 overflow-hidden border-none bg-foreground p-7 text-background premium-shadow sm:p-10">
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-background/55">Estudio Digital Omega</p>
                 <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:text-6xl">Tu biblioteca merece un lugar especial.</h2>
-                <p className="mt-5 max-w-xl text-sm leading-7 text-background/65">Retoma tus lecturas, gana experiencia y ordena tus próximos mundos en una estantería hecha para ti.</p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <button type="button" onClick={() => document.getElementById("omega-shelf")?.scrollIntoView({ behavior: "smooth", block: "center" })} className="omega-button bg-background text-foreground hover:bg-primary hover:text-primary-foreground">Ver mi estantería</button>
                   <button type="button" onClick={() => window.location.assign("/explorar")} className="omega-button border border-background/25 bg-transparent text-background hover:bg-background/10">Explorar catálogo</button>
