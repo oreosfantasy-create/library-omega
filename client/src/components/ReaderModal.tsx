@@ -669,7 +669,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     <style>
       body {
         background:${colors.bg}; color:${colors.text}; font-family:${fontFamily}; font-size:${fontSize}rem; line-height:${lineHeight}; 
-        padding: 2rem ${sideMargins}rem 3rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100vh;
+        padding: 2rem ${sideMargins}rem 3rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%;
         pointer-events: auto;
       }
       body, body * { color:${colors.text} !important; }
@@ -708,15 +708,15 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     <div className="fixed inset-0 z-[60] flex flex-col transition-colors duration-500" style={{ backgroundColor: colors.bg, color: colors.text }}>
       {/* Header Elite */}
       {!isFocusMode && (
-        <header className="flex min-h-16 items-center justify-between gap-2 border-b border-border/10 px-3 sm:px-6 py-2 backdrop-blur-md bg-transparent">
-          <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+        <header className="flex min-h-12 items-center justify-between gap-2 border-b border-border/10 px-2 py-1.5 backdrop-blur-md bg-transparent sm:min-h-16 sm:px-6 sm:py-2">
+          <div className="hidden min-w-0 items-center gap-2 sm:flex sm:gap-4">
             <BrandMark size="sm" label="Library Omega, gatito con símbolo Omega" />
             <div className="hidden sm:block leading-tight">
               <h2 className="line-clamp-1 max-w-md font-display text-base tracking-tight">{book.title}</h2>
               <p className="opacity-40 text-[9px] font-black uppercase tracking-widest">{book.fileType}</p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto sm:gap-2">
             <button onClick={toggleTTS} aria-label="Leer en voz alta" className={`hidden sm:flex p-3 rounded-2xl transition-all active:scale-90 ${isReading ? "bg-primary text-primary-foreground shadow-lg" : "hover:bg-secondary"}`}>
               {isReading ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </button>
@@ -739,7 +739,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       )}
 
       {/* Content Area */}
-      <main className="flex-1 relative overflow-hidden flex flex-col sm:flex-row">
+      <main className="relative flex flex-1 flex-col overflow-hidden pb-20 sm:flex-row sm:pb-0">
         {/* Iframe Viewport */}
         <div className="flex-1 relative">
           {loading && (
@@ -759,7 +759,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
           )}
 
           {isReady && book.fileType !== "pdf" && (
-            <div ref={contentRef} className="reader-spread flex h-full w-full items-stretch justify-center gap-0 overflow-hidden bg-secondary/30 p-2 sm:gap-3 sm:p-6">
+              <div ref={contentRef} className="reader-spread flex h-full w-full items-stretch justify-center gap-0 overflow-hidden bg-secondary/30 p-1.5 sm:gap-3 sm:p-6">
               <iframe
                 srcDoc={srcDoc}
                 className="reader-page h-full min-w-0 flex-1 border-none bg-background"
@@ -884,7 +884,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       {!isFocusMode && !(book.fileType === "pdf" && pdfNativeFallback) && (
         <div className="fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] sm:bottom-8 left-1/2 -translate-x-1/2 z-[70] flex max-w-[calc(100vw-1rem)] flex-nowrap items-center justify-center gap-1 sm:gap-8 px-2 sm:px-6 py-1.5 sm:py-4 bg-background/95 backdrop-blur-2xl rounded-full sm:rounded-3xl border border-border/50 shadow-2xl premium-shadow">
           {book.fileType === "pdf" && (
-            <div className="flex items-center gap-1 rounded-xl bg-secondary/60 p-1">
+            <div className="hidden items-center gap-1 rounded-xl bg-secondary/60 p-1 sm:flex">
               <button onClick={() => setPdfZoom(value => Math.max(80, value - 10))} aria-label="Alejar PDF" disabled={pdfZoom <= 80} className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-black hover:bg-background disabled:opacity-30">−</button>
               <span className="min-w-9 text-center text-[9px] font-black tabular-nums">{pdfZoom}%</span>
               <button onClick={() => setPdfZoom(value => Math.min(160, value + 10))} aria-label="Acercar PDF" disabled={pdfZoom >= 160} className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-black hover:bg-background disabled:opacity-30">+</button>
