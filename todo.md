@@ -136,14 +136,17 @@
 
 
 ## Rediseño total de identidad visual — 2026-09-12
-- [ ] Subir logo nuevo para modo claro y conservar logo oficial oscuro.
-- [ ] Activar selector de tema claro/oscuro y selección de logo por tema.
-- [ ] Rediseñar completamente navegación, inicio, XP, estanterías, tarjetas y controles.
-- [ ] Mantener Explorar y Perfil funcionales, adaptados al sistema visual.
-- [ ] Verificar responsive, TypeScript, build y pruebas Vitest.
-- [ ] Guardar checkpoint final.
+- [x] Subir logo nuevo para modo claro y conservar logo oficial oscuro.
+- [x] Activar selector de tema claro/oscuro y selección de logo por tema.
+- [x] Rediseñar completamente navegación, inicio, XP, estanterías, tarjetas y controles.
+- [x] Mantener Explorar y Perfil funcionales, adaptados al sistema visual.
+- [x] Verificar responsive, TypeScript, build y pruebas Vitest.
+- [x] Guardar checkpoint final.
 
 - [x] Logo claro nuevo subido a Manus Storage: /manus-storage/library-omega-light_d21e7f61.png.
 - [x] Logo oscuro existente conservado para el modo oscuro.
 - [x] Selector claro/oscuro verificado en navegador.
 - [x] TypeScript, build y 14 pruebas automatizadas completadas correctamente.
+
+### Evidencia de cierre del rediseño total
+Se verificó visualmente Perfil en modo oscuro y se confirmó la navegación, contraste, tarjeta de XP y controles. También se capturaron Inicio, Perfil y Explorar en viewport móvil de 375×812: la barra inferior, navegación, hero, panel XP, tarjetas y filtros se mantuvieron legibles y sin solapamientos.
