@@ -90,7 +90,7 @@ export default function Home() {
           <AdminPanel />
         ) : (
           <div className="space-y-12 min-w-0 animate-in fade-in duration-1000">
-            <section className="hidden gap-8 md:grid md:grid-cols-[minmax(0,1fr)_320px] md:items-stretch">
+            <section className="hidden gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
               <div className="catalog-card min-w-0 overflow-hidden border-none bg-foreground p-5 text-background premium-shadow sm:p-10">
                 <p className="hidden text-[10px] font-black uppercase tracking-[0.28em] text-background/55 sm:block">Estudio Digital Omega</p>
                 <h2 className="hidden mt-4 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:block sm:text-6xl">Tu biblioteca merece un lugar especial.</h2>
