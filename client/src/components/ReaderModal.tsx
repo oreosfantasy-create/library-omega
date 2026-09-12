@@ -397,8 +397,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [theme, setTheme] = useState<"white" | "dark" | "sepia">("white");
-  const [fontSize, setFontSize] = useState(1.1);
-  const [lineHeight, setLineHeight] = useState(1.8);
+  const [fontSize, setFontSize] = useState(1.0);
+  const [lineHeight, setLineHeight] = useState(1.55);
   const [fontFamily, setFontFamily] = useState("'Inter', sans-serif");
   const [showSettings, setShowSettings] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -426,20 +426,34 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     if (s) {
       const p = JSON.parse(s);
       setTheme(p.theme || "white");
-      setFontSize(p.fontSize || 1.1);
-      setLineHeight(p.lineHeight || 1.8);
+      setFontSize(p.fontSize || 1.0);
+      setLineHeight(p.lineHeight || 1.55);
       setFontFamily(p.fontFamily || "'Inter', sans-serif");
     }
     const n = localStorage.getItem("omega-reader-notes");
     if (n) setNotes(JSON.parse(n));
     
     const handleResize = () => {
-      setPageHeight(Math.max(240, window.innerHeight - 170));
-      setContentWidth(Math.max(260, window.innerWidth - (window.innerWidth < 640 ? 32 : 96)));
+      const viewport = contentRef.current;
+      const width = viewport?.clientWidth || window.innerWidth;
+      const height = viewport?.clientHeight || window.innerHeight - 170;
+      const isSpread = book?.fileType === "epub" && width >= 640;
+      const pageWidth = isSpread ? Math.floor((width - 42) / 2) : width;
+      const horizontalPadding = isSpread ? 128 : 48;
+      setPageHeight(Math.max(240, height - (isSpread ? 96 : 88)));
+      setContentWidth(Math.max(240, pageWidth - horizontalPadding));
     };
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    const observer = typeof ResizeObserver !== "undefined" && contentRef.current
+      ? new ResizeObserver(handleResize)
+      : null;
+    if (observer && contentRef.current) observer.observe(contentRef.current);
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      observer?.disconnect();
+    };
+  }, [book?.fileType]);
 
   useEffect(() => {
     localStorage.setItem("omega-reader-settings", JSON.stringify({ theme, fontSize, lineHeight, fontFamily }));
@@ -744,7 +758,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
           )}
 
           {isReady && book.fileType !== "pdf" && (
-            <div className="reader-spread flex h-full w-full items-stretch justify-center gap-0 overflow-hidden bg-secondary/30 p-2 sm:gap-3 sm:p-6">
+            <div ref={contentRef} className="reader-spread flex h-full w-full items-stretch justify-center gap-0 overflow-hidden bg-secondary/30 p-2 sm:gap-3 sm:p-6">
               <iframe
                 srcDoc={srcDoc}
                 className="reader-page h-full min-w-0 flex-1 border-none bg-background"
