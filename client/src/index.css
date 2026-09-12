@@ -114,8 +114,8 @@
   .shelf-book-wrap { @apply min-w-0; }
   .shelf-book-wrap > * { @apply h-full; }
   .shelf-plank { @apply mt-5 h-3 rounded-full bg-foreground/80; box-shadow: 0 8px 0 color-mix(in oklab, var(--foreground) 12%, transparent), 0 18px 24px -12px color-mix(in oklab, var(--foreground) 50%, transparent); }
-  .brand-mark { background: transparent; opacity: 0.82; mix-blend-mode: multiply; box-shadow: none; }
-  .dark .brand-mark { opacity: 0.78; mix-blend-mode: screen; }
+  .brand-mark { background: transparent; opacity: 0.88; mix-blend-mode: normal; box-shadow: none; }
+  .dark .brand-mark { opacity: 0.86; mix-blend-mode: normal; }
   .brand-mark-dark { background: transparent; }
   .xp-progress-bar { @apply h-3 w-full overflow-hidden rounded-full bg-secondary; }
   .xp-progress-fill { @apply h-full rounded-full bg-primary transition-all duration-700; }

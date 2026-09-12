@@ -1,7 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
 
-const LIGHT_LOGO_URL = "/manus-storage/library-omega-light_d21e7f61.png";
-const DARK_LOGO_URL = "/library-omega-cat.png";
+const LIGHT_LOGO_URL = "/manus-storage/library-omega-light-clean_b0439118.png";
+const DARK_LOGO_URL = "/manus-storage/library-omega-dark-clean_1c827907.png";
 const sizeClasses = {
   sm: "h-10 w-10 rounded-xl",
   md: "h-12 w-12 rounded-2xl",
@@ -14,7 +14,13 @@ export default function BrandMark({ size = "md", label = "Logo Library Omega" }:
   const isDark = theme === "dark";
   return (
     <span role="img" aria-label={label} className={`brand-mark brand-mark-${theme} relative inline-flex shrink-0 items-center justify-center overflow-hidden ${sizeClasses[size]}`}>
-      <img src={isDark ? DARK_LOGO_URL : LIGHT_LOGO_URL} alt="" aria-hidden="true" className="h-full w-full object-contain invert" style={{ filter: isDark ? "invert(1)" : "none" }} />
+      <img
+        src={isDark ? DARK_LOGO_URL : LIGHT_LOGO_URL}
+        alt=""
+        aria-hidden="true"
+        className="h-full w-full object-contain invert"
+        style={{ filter: "none" }}
+      />
       <span className="sr-only text-zinc-950 drop-shadow">Ω</span>
     </span>
   );
