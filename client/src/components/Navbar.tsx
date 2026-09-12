@@ -52,7 +52,7 @@ export default function Navbar() {
 
   return (
     <header className="omega-header sticky top-0 z-50 w-full">
-      <div className="container flex min-w-0 h-[4.5rem] items-center justify-between gap-2 sm:h-24 sm:gap-5">
+      <div className="container flex min-w-0 h-12 items-center justify-between gap-1 sm:h-24 sm:gap-5">
         {/* Marca Elite & Back Button */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
           {location !== "/" && (
@@ -125,8 +125,8 @@ export default function Navbar() {
             </div>
           </div>
 
-          <button type="button" onClick={() => toggleTheme?.()} className="omega-icon-button" title={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"} aria-label={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"}>
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          <button type="button" onClick={() => toggleTheme?.()} className="omega-icon-button h-8 w-8 rounded-lg sm:h-10 sm:w-10 sm:rounded-xl" title={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"} aria-label={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"}>
+            {theme === "light" ? <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           </button>
 
           {isAuthenticated ? (
@@ -147,16 +147,16 @@ export default function Navbar() {
             <button
               onClick={() => startLogin()}
               disabled={loading}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-6 py-2.5 sm:py-3 bg-foreground text-background text-[10px] font-black uppercase tracking-widest rounded-xl sm:rounded-2xl hover:opacity-90 shadow-xl disabled:opacity-50"
+              className="flex h-8 w-8 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-foreground px-0 text-background text-[10px] font-black uppercase tracking-widest shadow-xl hover:opacity-90 disabled:opacity-50 sm:h-auto sm:w-auto sm:justify-start sm:rounded-2xl sm:px-6 sm:py-3"
             >
               <LogIn className="h-4 w-4" />
               <span className="hidden sm:inline">Entrar con Google</span>
             </button>
           )}
 
-          <button
-            onClick={handleAdminToggle}
-            className={`flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl ${
+              <button
+                onClick={handleAdminToggle}
+            className={`flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-2xl ${
               role === "admin" 
                 ? "bg-primary text-background shadow-lg" 
                 : "bg-secondary/50 text-muted-foreground hover:text-foreground border border-border/50"

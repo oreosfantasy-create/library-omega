@@ -91,10 +91,10 @@ export default function Home() {
         ) : (
           <div className="space-y-12 min-w-0 animate-in fade-in duration-1000">
             <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
-              <div className="catalog-card min-w-0 overflow-hidden border-none bg-foreground p-7 text-background premium-shadow sm:p-10">
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-background/55">Estudio Digital Omega</p>
-                <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:text-6xl">Tu biblioteca merece un lugar especial.</h2>
-                <div className="mt-8 flex flex-wrap gap-3">
+              <div className="catalog-card min-w-0 overflow-hidden border-none bg-foreground p-5 text-background premium-shadow sm:p-10">
+                <p className="hidden text-[10px] font-black uppercase tracking-[0.28em] text-background/55 sm:block">Estudio Digital Omega</p>
+                <h2 className="hidden mt-4 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:block sm:text-6xl">Tu biblioteca merece un lugar especial.</h2>
+                <div className="mt-1 flex flex-wrap gap-3 sm:mt-8">
                   <button type="button" onClick={() => document.getElementById("omega-shelf")?.scrollIntoView({ behavior: "smooth", block: "center" })} className="omega-button bg-background text-foreground hover:bg-primary hover:text-primary-foreground">Ver mi estantería</button>
                   <button type="button" onClick={() => window.location.assign("/explorar")} className="omega-button border border-background/25 bg-transparent text-background hover:bg-background/10">Explorar catálogo</button>
                 </div>
