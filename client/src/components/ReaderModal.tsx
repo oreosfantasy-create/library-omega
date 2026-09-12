@@ -401,7 +401,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const [lineHeight, setLineHeight] = useState(1.55);
   const [fontFamily, setFontFamily] = useState("'Inter', sans-serif");
   const [showSettings, setShowSettings] = useState(false);
-  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(true);
 
   const [notes, setNotes] = useState<Record<string, string[]>>({});
   const [showNotes, setShowNotes] = useState(false);
@@ -440,7 +440,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       const isSpread = book?.fileType === "epub" && width >= 640;
       const pageWidth = isSpread ? Math.floor((width - 42) / 2) : width;
       const horizontalPadding = isSpread ? 128 : 48;
-      setPageHeight(Math.max(240, height - (isSpread ? 96 : 88)));
+      // Reservar una franja inferior limpia para que ningún párrafo termine contra el borde.
+      setPageHeight(Math.max(240, height - (isSpread ? 128 : 120)));
       setContentWidth(Math.max(240, pageWidth - horizontalPadding));
     };
     window.addEventListener("resize", handleResize);
@@ -554,6 +555,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
   const paginated = useMemo(() => paginate(allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily), [allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily]);
   const readerPageCount = book?.fileType === "pdf" ? pdfPageCount : paginated.pageCount;
+  const pageStep = book?.fileType === "epub" && contentWidth < 600 ? 1 : book?.fileType === "epub" ? 2 : 1;
   const currentPageChunks = useMemo(() => {
     if (book?.fileType === "pdf") return pdfPageImage ? [pdfPageImage] : [];
     return allChunks.filter((_, index) => paginated.chunkPageIdx[index] === page);
@@ -669,7 +671,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     <style>
       body {
         background:${colors.bg}; color:${colors.text}; font-family:${fontFamily}; font-size:${fontSize}rem; line-height:${lineHeight}; 
-        padding: 2rem ${sideMargins}rem 3rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%;
+        padding: 2rem ${sideMargins}rem 5rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%;
         pointer-events: auto;
       }
       body, body * { color:${colors.text} !important; }
@@ -801,7 +803,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
         </div>
 
         {/* Side Panels (Settings/Notes/Dictionary) */}
-        {(showSettings || showNotes || dictionaryWord) && !isFocusMode && (
+        {(showSettings || showNotes || dictionaryWord) && (
           <aside className="w-full sm:w-80 border-l border-border/10 p-8 space-y-8 animate-in slide-in-from-right duration-300 bg-background/50 backdrop-blur-xl z-50 overflow-y-auto">
             {showSettings && (
               <div className="space-y-8">
@@ -881,7 +883,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       </main>
 
       {/* Floating Controls Elite (Simplificado para móviles) */}
-      {!isFocusMode && !(book.fileType === "pdf" && pdfNativeFallback) && (
+      {!(book.fileType === "pdf" && pdfNativeFallback) && (
         <div className="fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] sm:bottom-8 left-1/2 -translate-x-1/2 z-[70] flex max-w-[calc(100vw-1rem)] flex-nowrap items-center justify-center gap-1 sm:gap-8 px-2 sm:px-6 py-1.5 sm:py-4 bg-background/95 backdrop-blur-2xl rounded-full sm:rounded-3xl border border-border/50 shadow-2xl premium-shadow">
           {book.fileType === "pdf" && (
             <div className="hidden items-center gap-1 rounded-xl bg-secondary/60 p-1 sm:flex">
@@ -891,14 +893,14 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
               <button onClick={() => setPdfZoom(100)} aria-label="Restablecer zoom PDF" className="hidden h-8 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider hover:bg-background sm:block">Ajustar</button>
             </div>
           )}
-          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.max(0, p - (book.fileType === "epub" ? 2 : 1))); }} aria-label="Página anterior" disabled={page === 0} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
+          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.max(0, p - pageStep)); }} aria-label="Página anterior" disabled={page === 0} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
             <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
           <div className="flex min-w-[80px] flex-col items-center">
             <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Página</span>
-            <span className="text-[11px] sm:text-sm font-black tabular-nums">{book.fileType === "pdf" && !readerPageCount ? "—" : `${page + 1}${book.fileType === "epub" && page + 1 < readerPageCount ? `–${Math.min(page + 2, readerPageCount)}` : ""} / ${readerPageCount}`}</span>
+            <span className="text-[11px] sm:text-sm font-black tabular-nums">{book.fileType === "pdf" && !readerPageCount ? "—" : `${page + 1}${pageStep === 2 && page + 1 < readerPageCount ? `–${Math.min(page + 2, readerPageCount)}` : ""} / ${readerPageCount}`}</span>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.min(Math.max(0, readerPageCount - 1), p + (book.fileType === "epub" ? 2 : 1))); }} aria-label="Página siguiente" disabled={!readerPageCount || page >= readerPageCount - 1} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
+          <button onClick={(e) => { e.stopPropagation(); setPage(p => Math.min(Math.max(0, readerPageCount - 1), p + pageStep)); }} aria-label="Página siguiente" disabled={!readerPageCount || page >= readerPageCount - 1} className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full sm:rounded-2xl bg-secondary/50 text-foreground hover:bg-foreground hover:text-background transition-all active:scale-90 disabled:opacity-20">
             <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
         </div>
