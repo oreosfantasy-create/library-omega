@@ -156,11 +156,11 @@ export default function CaptchaGate({ onVerify }: CaptchaGateProps) {
                 onChange={(e) => setInput(e.target.value)}
                 disabled={!!lockUntil}
                 className={`w-full border-2 border-black dark:border-white bg-transparent px-4 py-3 text-center text-lg font-bold uppercase tracking-widest outline-none transition-colors focus:bg-secondary dark:focus:bg-white/10 ${
-                  error ? "border-red-500 bg-red-50 dark:bg-red-950/30" : ""
+                  error ? "border-border bg-secondary dark:bg-secondary/30" : ""
                 }`}
               />
               {error && (
-                <p className="text-center text-xs font-bold uppercase text-red-500">
+                <p className="text-center text-xs font-bold uppercase text-foreground">
                   {error}
                 </p>
               )}

@@ -43,14 +43,14 @@ export default function CatMascot() {
       <div className="mt-8 space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-secondary/50 border border-border/50">
-            <div className="flex items-center gap-1.5 text-orange-500">
-              <Flame className={`h-4 w-4 ${streak > 0 ? 'text-orange-500' : 'opacity-40'}`} />
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Flame className={`h-4 w-4 ${streak > 0 ? 'text-foreground' : 'opacity-40'}`} />
               <span className="text-xs font-black tabular-nums">{streak}</span>
             </div>
             <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Días Racha</span>
           </div>
           <div className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-secondary/50 border border-border/50">
-            <div className="flex items-center gap-1.5 text-blue-500">
+            <div className="flex items-center gap-1.5 text-foreground">
               <Zap className="h-4 w-4" />
               <span className="text-xs font-black tabular-nums">{xp}</span>
             </div>

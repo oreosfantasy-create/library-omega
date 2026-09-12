@@ -92,12 +92,12 @@ export default function Profile() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-background/10 rounded-2xl border border-background/10 backdrop-blur-sm">
-                    <Flame className="h-4 w-4 mb-2 text-orange-400" />
+                    <Flame className="h-4 w-4 mb-2 text-foreground" />
                     <p className="text-2xl font-display leading-none">{streak}</p>
                     <p className="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Días de Racha</p>
                   </div>
                   <div className="p-4 bg-background/10 rounded-2xl border border-background/10 backdrop-blur-sm">
-                    <BookOpen className="h-4 w-4 mb-2 text-blue-400" />
+                    <BookOpen className="h-4 w-4 mb-2 text-foreground" />
                     <p className="text-2xl font-display leading-none">{readBooks.length}</p>
                     <p className="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Libros Leídos</p>
                   </div>

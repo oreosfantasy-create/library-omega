@@ -4,25 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.97 0.018 82);
-  --foreground: oklch(0.18 0.025 50);
-  --card: oklch(0.995 0.008 85);
-  --card-foreground: oklch(0.18 0.025 50);
-  --popover: oklch(0.995 0.008 85);
-  --popover-foreground: oklch(0.18 0.025 50);
-  --primary: oklch(0.64 0.13 42);
-  --primary-foreground: oklch(0.99 0.01 85);
-  --secondary: oklch(0.92 0.025 77);
-  --secondary-foreground: oklch(0.2 0.03 50);
-  --muted: oklch(0.91 0.025 77);
-  --muted-foreground: oklch(0.48 0.04 52);
-  --accent: oklch(0.83 0.08 85);
-  --accent-foreground: oklch(0.2 0.03 50);
-  --destructive: oklch(0.58 0.19 25);
+  --background: oklch(0.97 0 0);
+  --foreground: oklch(0.12 0 0);
+  --card: oklch(0.995 0 0);
+  --card-foreground: oklch(0.12 0 0);
+  --popover: oklch(0.995 0 0);
+  --popover-foreground: oklch(0.12 0 0);
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.91 0 0);
+  --secondary-foreground: oklch(0.12 0 0);
+  --muted: oklch(0.9 0 0);
+  --muted-foreground: oklch(0.46 0 0);
+  --accent: oklch(0.82 0 0);
+  --accent-foreground: oklch(0.12 0 0);
+  --destructive: oklch(0.28 0 0);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.82 0.035 70);
-  --input: oklch(0.82 0.035 70);
-  --ring: oklch(0.64 0.13 42);
+  --border: oklch(0.8 0 0);
+  --input: oklch(0.8 0 0);
+  --ring: oklch(0.18 0 0);
   --radius: 1.15rem;
   --font-display: "DM Serif Display", Georgia, serif;
   --font-body: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
@@ -30,25 +30,25 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.018 48);
-  --foreground: oklch(0.94 0.018 82);
-  --card: oklch(0.17 0.022 48);
-  --card-foreground: oklch(0.94 0.018 82);
-  --popover: oklch(0.17 0.022 48);
-  --popover-foreground: oklch(0.94 0.018 82);
-  --primary: oklch(0.78 0.13 72);
-  --primary-foreground: oklch(0.16 0.02 48);
-  --secondary: oklch(0.23 0.028 48);
-  --secondary-foreground: oklch(0.94 0.018 82);
-  --muted: oklch(0.24 0.025 48);
-  --muted-foreground: oklch(0.7 0.035 72);
-  --accent: oklch(0.31 0.04 52);
-  --accent-foreground: oklch(0.94 0.018 82);
-  --destructive: oklch(0.62 0.18 25);
-  --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(0.3 0.035 48);
-  --input: oklch(0.3 0.035 48);
-  --ring: oklch(0.78 0.13 72);
+  --background: oklch(0.09 0 0);
+  --foreground: oklch(0.94 0 0);
+  --card: oklch(0.15 0 0);
+  --card-foreground: oklch(0.94 0 0);
+  --popover: oklch(0.15 0 0);
+  --popover-foreground: oklch(0.94 0 0);
+  --primary: oklch(0.9 0 0);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.94 0 0);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.3 0 0);
+  --accent-foreground: oklch(0.94 0 0);
+  --destructive: oklch(0.65 0 0);
+  --destructive-foreground: oklch(0.08 0 0);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.3 0 0);
+  --ring: oklch(0.9 0 0);
 }
 
 @theme inline {
@@ -87,7 +87,7 @@
     @apply text-foreground;
     min-height: 100vh;
     background-color: var(--background);
-    background-image: radial-gradient(circle at 0 0, color-mix(in oklab, var(--primary) 10%, transparent), transparent 28rem), radial-gradient(circle at 100% 10%, color-mix(in oklab, var(--foreground) 5%, transparent), transparent 30rem);
+    background-image: radial-gradient(circle at 0 0, color-mix(in oklab, var(--foreground) 8%, transparent), transparent 28rem), radial-gradient(circle at 100% 10%, color-mix(in oklab, var(--foreground) 4%, transparent), transparent 30rem);
     background-attachment: fixed;
     font-family: var(--font-body);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -114,8 +114,9 @@
   .shelf-book-wrap { @apply min-w-0; }
   .shelf-book-wrap > * { @apply h-full; }
   .shelf-plank { @apply mt-5 h-3 rounded-full bg-foreground/80; box-shadow: 0 8px 0 color-mix(in oklab, var(--foreground) 12%, transparent), 0 18px 24px -12px color-mix(in oklab, var(--foreground) 50%, transparent); }
-  .brand-mark { background: var(--card); box-shadow: 0 8px 24px -14px color-mix(in oklab, var(--foreground) 70%, transparent); }
-  .brand-mark-dark { background: #171615; }
+  .brand-mark { background: transparent; opacity: 0.82; mix-blend-mode: multiply; box-shadow: none; }
+  .dark .brand-mark { opacity: 0.78; mix-blend-mode: screen; }
+  .brand-mark-dark { background: transparent; }
   .xp-progress-bar { @apply h-3 w-full overflow-hidden rounded-full bg-secondary; }
   .xp-progress-fill { @apply h-full rounded-full bg-primary transition-all duration-700; }
 }

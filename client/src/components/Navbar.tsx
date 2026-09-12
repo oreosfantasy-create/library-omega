@@ -101,7 +101,7 @@ export default function Navbar() {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <div className="omega-stats hidden lg:flex items-center gap-1 rounded-2xl p-1" aria-label="Progreso personal">
             <div className="flex items-center gap-2 rounded-xl px-2.5 py-1.5" title="Días de racha">
-              <Flame className="h-4 w-4 text-orange-500" aria-hidden="true" />
+              <Flame className="h-4 w-4 text-foreground" aria-hidden="true" />
               <div className="leading-none">
                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Racha</p>
                 <span className="text-xs font-black tabular-nums">{streak}</span>
@@ -109,7 +109,7 @@ export default function Navbar() {
             </div>
             <div className="h-7 w-px bg-border/60" aria-hidden="true" />
             <div className="flex items-center gap-2 rounded-xl px-2.5 py-1.5" title="Nivel actual">
-              <Award className="h-4 w-4 text-blue-500" aria-hidden="true" />
+              <Award className="h-4 w-4 text-foreground" aria-hidden="true" />
               <div className="leading-none">
                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Nivel</p>
                 <span className="text-xs font-black tabular-nums">{level}</span>

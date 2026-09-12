@@ -49,7 +49,7 @@ export default function BookCard({ book, index, onOpen, read }: BookCardProps) {
         </span>
         
         {read && (
-          <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center bg-green-500 text-white rounded-full shadow-lg ring-4 ring-background animate-bubble">
+          <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center bg-foreground text-white rounded-full shadow-lg ring-4 ring-background animate-bubble">
             <span className="text-[10px] font-black">✓</span>
           </div>
         )}

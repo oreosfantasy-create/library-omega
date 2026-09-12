@@ -163,7 +163,7 @@ export default function Home() {
               {readBooks.length > 0 && (
                 <section className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/10 text-green-600 rounded-xl"><Award className="h-5 w-5" /></div>
+                    <div className="p-2 bg-foreground/10 text-foreground rounded-xl"><Award className="h-5 w-5" /></div>
                     <h2 className="font-display text-3xl tracking-tight">Colección de Honor</h2>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -189,9 +189,9 @@ export default function Home() {
                 <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(15rem,0.72fr)_minmax(0,1.28fr)] lg:gap-10">
                   <div className="flex min-w-0 flex-col justify-between gap-8 rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-5 sm:p-6">
                     <div className="space-y-5">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300 text-zinc-950 shadow-lg shadow-amber-300/10"><MessageSquare className="h-5 w-5" /></div>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-zinc-950 shadow-lg"><MessageSquare className="h-5 w-5" /></div>
                       <div className="space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-200/80">Canal privado</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-foreground/80">Canal privado</p>
                         <h2 className="font-display text-3xl leading-tight tracking-tight sm:text-4xl">Tu opinión importa</h2>
                         <p className="max-w-sm text-sm leading-6 text-white/65">Comparte una idea, un problema o una sugerencia para seguir afinando tu experiencia de lectura.</p>
                       </div>
@@ -222,7 +222,7 @@ function XpCommandCenter() {
   return (
     <div className="rounded-[1.5rem] bg-foreground p-5 text-background sm:p-6">
       <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-background/55">Tu energía</p><h3 className="mt-2 font-display text-3xl">Nivel {level}</h3></div><Zap className="h-7 w-7 text-primary" /></div>
-      <div className="mt-7 flex items-end justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-widest text-background/45">XP total</p><p className="mt-1 text-5xl font-black tracking-tight">{xp}</p></div><div className="text-right"><p className="text-[9px] font-black uppercase tracking-widest text-background/45">Racha</p><p className="mt-1 flex items-center gap-1 text-2xl font-black"><Flame className="h-5 w-5 text-orange-400" />{streak}</p></div></div>
+      <div className="mt-7 flex items-end justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-widest text-background/45">XP total</p><p className="mt-1 text-5xl font-black tracking-tight">{xp}</p></div><div className="text-right"><p className="text-[9px] font-black uppercase tracking-widest text-background/45">Racha</p><p className="mt-1 flex items-center gap-1 text-2xl font-black"><Flame className="h-5 w-5 text-foreground" />{streak}</p></div></div>
       <div className="mt-7"><div className="mb-2 flex justify-between text-[9px] font-black uppercase tracking-widest text-background/55"><span>Próximo nivel</span><span>{percent}%</span></div><div className="h-3 overflow-hidden rounded-full bg-background/15"><div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${percent}%` }} /></div></div>
       <p className="mt-4 text-xs leading-5 text-background/50">Lee, descubre y convierte cada página en experiencia.</p>
     </div>
@@ -273,15 +273,15 @@ export function ReviewForm() {
       <div className="flex min-h-40 flex-col justify-center rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
         <p className="font-display text-2xl">Inicia sesión para escribir</p>
         <p className="mt-2 max-w-md text-sm leading-6 text-white/60">Necesitamos asociar el mensaje a tu cuenta. Tu opinión seguirá siendo privada y solo la verá administración.</p>
-        <button type="button" onClick={() => startLogin()} className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-white px-6 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-950 shadow-lg transition-transform hover:bg-amber-200 active:scale-95 sm:w-fit">Entrar con Google</button>
+        <button type="button" onClick={() => startLogin()} className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-white px-6 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-950 shadow-lg transition-transform hover:bg-foreground active:scale-95 sm:w-fit">Entrar con Google</button>
       </div>
     );
   }
 
   if (isSent) {
     return (
-      <div className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.08] p-6 text-center animate-bubble">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-300 text-zinc-950 shadow-lg shadow-emerald-300/10"><Send className="h-6 w-6" /></div>
+      <div className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-border bg-foreground/[0.08] p-6 text-center animate-bubble">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-zinc-950 shadow-lg shadow-none"><Send className="h-6 w-6" /></div>
         <p className="font-display text-2xl">Mensaje recibido</p>
         <p className="mt-2 text-sm text-white/60">Gracias. El equipo lo revisará de forma privada.</p>
       </div>
@@ -293,16 +293,16 @@ export function ReviewForm() {
       <div className="grid gap-5 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="space-y-2">
           <label htmlFor="review-name" className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Firma opcional</label>
-          <input id="review-name" value={name} onChange={e => setName(e.target.value)} placeholder="Cómo quieres identificarte" className="h-12 w-full min-w-0 rounded-xl border border-white/15 bg-white/[0.07] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-amber-200/70 focus:bg-white/[0.11]" />
+          <input id="review-name" value={name} onChange={e => setName(e.target.value)} placeholder="Cómo quieres identificarte" className="h-12 w-full min-w-0 rounded-xl border border-white/15 bg-white/[0.07] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-border focus:bg-white/[0.11]" />
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <label className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Valoración</label>
-            <span className="text-xs font-semibold text-amber-200">{rating} de 5</span>
+            <span className="text-xs font-semibold text-foreground">{rating} de 5</span>
           </div>
           <div className="flex h-12 items-center gap-1 rounded-xl border border-white/15 bg-white/[0.07] px-4" role="group" aria-label="Seleccionar valoración">
             {[1, 2, 3, 4, 5].map(s => (
-              <button key={s} type="button" onClick={() => setRating(s)} aria-label={`${s} de 5 estrellas`} aria-pressed={s <= rating} className={`rounded-lg p-1.5 transition-all hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-200 ${s <= rating ? "scale-110 text-amber-300" : "text-white/20"}`}><Star className="h-4 w-4 fill-current" /></button>
+              <button key={s} type="button" onClick={() => setRating(s)} aria-label={`${s} de 5 estrellas`} aria-pressed={s <= rating} className={`rounded-lg p-1.5 transition-all hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${s <= rating ? "scale-110 text-foreground" : "text-white/20"}`}><Star className="h-4 w-4 fill-current" /></button>
             ))}
           </div>
         </div>
@@ -312,12 +312,12 @@ export function ReviewForm() {
           <label htmlFor="review-comment" className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Comentario o sugerencia</label>
           <span className="text-[10px] tabular-nums text-white/35">{comment.length}/1000</span>
         </div>
-        <textarea id="review-comment" value={comment} maxLength={1000} onChange={e => setComment(e.target.value)} placeholder="Cuéntanos qué podemos mejorar…" className="min-h-36 w-full min-w-0 resize-y rounded-xl border border-white/15 bg-white/[0.07] px-4 py-3 text-sm leading-6 text-white outline-none transition-colors placeholder:text-white/30 focus:border-amber-200/70 focus:bg-white/[0.11]" required />
+        <textarea id="review-comment" value={comment} maxLength={1000} onChange={e => setComment(e.target.value)} placeholder="Cuéntanos qué podemos mejorar…" className="min-h-36 w-full min-w-0 resize-y rounded-xl border border-white/15 bg-white/[0.07] px-4 py-3 text-sm leading-6 text-white outline-none transition-colors placeholder:text-white/30 focus:border-border focus:bg-white/[0.11]" required />
       </div>
-      {sendError && <p role="alert" className="rounded-xl border border-red-300/30 bg-red-400/10 px-4 py-3 text-xs leading-5 text-red-100">{sendError}</p>}
+      {sendError && <p role="alert" className="rounded-xl border border-border bg-secondary px-4 py-3 text-xs leading-5 text-foreground">{sendError}</p>}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-5 text-white/40">No se publica en la biblioteca.</p>
-        <button type="submit" disabled={addReviewMutation.isPending || !comment.trim()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-6 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-950 shadow-xl transition-all hover:bg-amber-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"><Send className="h-4 w-4" /> {addReviewMutation.isPending ? "Enviando…" : "Enviar mensaje"}</button>
+        <button type="submit" disabled={addReviewMutation.isPending || !comment.trim()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-6 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-950 shadow-xl transition-all hover:bg-foreground active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"><Send className="h-4 w-4" /> {addReviewMutation.isPending ? "Enviando…" : "Enviar mensaje"}</button>
       </div>
     </form>
   );

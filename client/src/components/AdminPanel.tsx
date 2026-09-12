@@ -226,8 +226,8 @@ export default function AdminPanel() {
               <RefreshCw className="mr-3 h-5 w-5 animate-spin" /> Verificando sesión de administrador…
             </div>
           ) : !canViewAccess ? (
-            <div className="flex min-h-48 flex-col items-center justify-center rounded-[1.75rem] border border-amber-500/20 bg-amber-500/5 p-6 text-center" role="alert">
-              <Shield className="mb-3 h-8 w-8 text-amber-500" />
+            <div className="flex min-h-48 flex-col items-center justify-center rounded-[1.75rem] border border-border bg-foreground/5 p-6 text-center" role="alert">
+              <Shield className="mb-3 h-8 w-8 text-foreground" />
               <p className="font-semibold">Historial protegido</p>
               <p className="mt-1 max-w-md text-sm text-muted-foreground">Inicia sesión con la cuenta Google que tiene rol administrador para consultar quién ingresó y cuándo.</p>
             </div>
@@ -291,7 +291,7 @@ export default function AdminPanel() {
                     <div className="h-10 w-10 bg-secondary rounded-xl flex items-center justify-center"><UserIcon className="h-5 w-5 opacity-40" /></div>
                     <div>
                       <p className="text-xs font-black uppercase tracking-widest">{rev.userEmail}</p>
-                      <div className="flex gap-1 text-yellow-400">
+                      <div className="flex gap-1 text-foreground">
                         {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`h-3 w-3 ${s <= rev.rating ? "fill-current" : "opacity-20"}`} />)}
                       </div>
                     </div>
