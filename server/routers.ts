@@ -58,6 +58,7 @@ export const appRouter = router({
         age: b.age ?? "Universal",
         url: `/manus-storage/${b.storageKey}`,
         coverUrl: b.coverKey ? `/manus-storage/${b.coverKey}` : null,
+        featured: Boolean(b.featured),
         addedAt: b.createdAt.getTime(),
       }));
     }),
@@ -143,10 +144,10 @@ export const appRouter = router({
       }),
 
     updateMetadata: protectedProcedure
-      .input(z.object({ id: z.string().min(1), category: z.string().optional(), age: z.string().optional() }))
+      .input(z.object({ id: z.string().min(1), category: z.string().optional(), age: z.string().optional(), featured: z.boolean().optional() }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
-        await db.updateBookMetadata(input.id, { category: input.category, age: input.age });
+        await db.updateBookMetadata(input.id, { category: input.category, age: input.age, featured: input.featured === undefined ? undefined : input.featured ? 1 : 0 });
         return { success: true } as const;
       }),
 

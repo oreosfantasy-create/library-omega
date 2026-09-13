@@ -143,6 +143,8 @@ export interface Book {
   folderUrl?: string;
   /** Última página leída (marca de página persistente entre dispositivos) */
   lastPage?: number;
+  /** Libro seleccionado por administración para la estantería principal. */
+  featured?: boolean;
 }
 
 export interface StreakState {
@@ -592,6 +594,7 @@ interface LibraryContextValue {
   addBook: (file: File, category?: BookCategory) => Promise<Book>;
   updateBookCategory: (bookId: string, category: BookCategory) => void;
   updateBookAge: (bookId: string, age: AgeRange) => void;
+  updateBookFeatured: (bookId: string, featured: boolean) => void;
   setBookLastPage: (bookId: string, lastPage: number) => void;
   markAsFinished: (bookId: string) => void;
   finishBook: (bookId: string) => void;
@@ -700,6 +703,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
           fileType: row.fileType,
           dataUrl,
           coverUrl: row.coverUrl,
+          featured: row.featured,
           addedAt: row.addedAt,
         });
       }
@@ -957,6 +961,8 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   const recommendedBooks = useMemo(() => {
     const pool = allBooks;
     if (pool.length === 0) return [];
+    const featured = pool.filter((book) => book.featured);
+    if (featured.length > 0) return featured.slice(0, 8);
     if (pool.length <= 3) return pool;
     const seed = new Date().toISOString().slice(0, 10);
     const idx = Array.from({ length: pool.length }, (_, i) => i)
@@ -1041,6 +1047,18 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       if (/^\d+-[a-z0-9]+$/.test(bookId)) {
         updateMetadataMutation.mutate({ id: bookId, age });
       }
+    },
+    [updateMetadataMutation]
+  );
+
+  const updateBookFeatured = useCallback(
+    (bookId: string, featured: boolean) => {
+      setCloudBooks((prev) => prev.map((b) => (b.id === bookId ? { ...b, featured } : b)));
+      setState((prev) => ({
+        ...prev,
+        books: prev.books.map((b) => (b.id === bookId ? { ...b, featured } : b)),
+      }));
+      if (/^\d+-[a-z0-9]+$/.test(bookId)) updateMetadataMutation.mutate({ id: bookId, featured });
     },
     [updateMetadataMutation]
   );
@@ -1203,6 +1221,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     addBook,
     updateBookCategory,
     updateBookAge,
+    updateBookFeatured,
     markAsFinished,
     finishBook,
     setBookLastPage,
@@ -1224,7 +1243,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     role, state.books, state.streak.current, state.readingLogs, state.achievements,
     addBookMutation.isPending, readBooks, catalogBooks, xp, level, xpProgressInfo,
     streakJustIncreased, levelUpJustHappened, resetLevelUpFlag, isAuthenticated, addBook,
-    updateBookCategory, updateBookAge, markAsFinished, finishBook, setBookLastPage,
+    updateBookCategory, updateBookAge, updateBookFeatured, markAsFinished, finishBook, setBookLastPage,
     allBooks, resetProgress, removeBook, recommendedBooks, booksByCategory,
     filterCategory, filterAge, addReadingLog, checkAchievements
   ]);

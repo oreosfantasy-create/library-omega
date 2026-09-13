@@ -1,0 +1,1 @@
+ALTER TABLE `books` ADD `featured` int DEFAULT 0 NOT NULL;

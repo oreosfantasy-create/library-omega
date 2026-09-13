@@ -107,7 +107,7 @@ export async function insertBook(book: InsertBook) {
 /** Actualizar metadatos de clasificación de un libro (género y/o edad). */
 export async function updateBookMetadata(
   id: string,
-  meta: { category?: string; age?: string; coverKey?: string },
+  meta: { category?: string; age?: string; coverKey?: string; featured?: number },
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -115,6 +115,7 @@ export async function updateBookMetadata(
   if (meta.category !== undefined) updates.category = meta.category;
   if (meta.age !== undefined) updates.age = meta.age;
   if (meta.coverKey !== undefined) updates.coverKey = meta.coverKey;
+  if (meta.featured !== undefined) updates.featured = meta.featured;
   if (Object.keys(updates).length === 0) return;
   await db.update(books).set(updates).where(eq(books.id, id));
 }

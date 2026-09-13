@@ -36,6 +36,7 @@ export const books = mysqlTable("books", {
   age: varchar("age", { length: 32 }).notNull().default("Universal"),
   storageKey: varchar("storageKey", { length: 512 }).notNull(),
   coverKey: varchar("coverKey", { length: 512 }),
+  featured: int("featured").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

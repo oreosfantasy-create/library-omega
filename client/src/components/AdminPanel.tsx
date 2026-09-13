@@ -5,7 +5,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLibrary, BOOK_CATEGORIES, AGE_RANGES, type BookCategory, type AgeRange } from "@/lib/libraryStore";
-import { Upload, FileText, X, Plus, Trash2, Tag, Search, History, MessageSquare, Star, Shield, LayoutGrid, FileSearch, RefreshCw, AlertCircle, Users } from "lucide-react";
+import { Upload, FileText, X, Plus, Trash2, Tag, Search, History, MessageSquare, Star, Shield, LayoutGrid, FileSearch, RefreshCw, AlertCircle, Users, Sparkles } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function AdminPanel() {
-  const { catalogBooks, addBook, updateBookCategory, updateBookAge, removeBook } = useLibrary();
+  const { catalogBooks, addBook, updateBookCategory, updateBookAge, updateBookFeatured, removeBook } = useLibrary();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const canViewAccess = isAuthenticated && user?.role === "admin";
   const [dragActive, setDragActive] = useState(false);
@@ -161,7 +161,10 @@ export default function AdminPanel() {
 
           <section className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h3 className="font-display text-3xl tracking-tight">Inventario Global</h3>
+                  <div>
+                    <h3 className="font-display text-3xl tracking-tight">Inventario Global</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">Marca los libros que aparecerán en “Selección Omega” en el inicio.</p>
+                  </div>
               <div className="relative w-full sm:w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30" />
                 <input
@@ -191,6 +194,16 @@ export default function AdminPanel() {
                     <select value={b.age} onChange={(e) => updateBookAge(b.id, e.target.value as any)} className="bg-secondary/50 border border-border/50 rounded-xl px-3 py-2 text-[10px] font-black uppercase outline-none focus:ring-2 focus:ring-primary/20">
                       {AGE_RANGES.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
+                    <button
+                      type="button"
+                      onClick={() => updateBookFeatured(b.id, !b.featured)}
+                      aria-pressed={Boolean(b.featured)}
+                      title={b.featured ? "Quitar de Selección Omega" : "Mostrar en Selección Omega"}
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${b.featured ? "border-foreground bg-foreground text-background shadow-lg" : "border-border/50 bg-secondary/50 text-muted-foreground hover:border-foreground hover:text-foreground"}`}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span className="hidden lg:inline">{b.featured ? "Destacado" : "Destacar"}</span>
+                    </button>
                     <button onClick={() => removeBook(b.id)} className="p-3 text-destructive hover:bg-destructive/10 rounded-xl transition-colors"><Trash2 className="h-5 w-5" /></button>
                   </div>
                 </div>
