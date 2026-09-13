@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Book } from "@/lib/libraryStore";
 import { useLibrary } from "@/lib/libraryStore";
-import { X, ChevronLeft, ChevronRight, Settings, Play, Pause, Plus, Trash2, Maximize2, Minimize2, BookOpen, MessageSquare, Search, SlidersHorizontal, Bookmark } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Settings, Play, Pause, Plus, Trash2, Maximize2, Minimize2, BookOpen, MessageSquare, Search, SlidersHorizontal, Bookmark, Highlighter, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -406,6 +406,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const [notes, setNotes] = useState<Record<string, string[]>>({});
   const [showNotes, setShowNotes] = useState(false);
   const [newNote, setNewNote] = useState("");
+  const [highlights, setHighlights] = useState<Record<string, string[]>>({});
+  const [selectedText, setSelectedText] = useState("");
   const [isReading, setIsReading] = useState(false);
   const [dictionaryWord, setDictionaryWord] = useState<string | null>(null);
   const [definition, setDefinition] = useState<string | null>(null);
@@ -415,6 +417,9 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     const handleMessage = (e: MessageEvent) => {
       if (e.data.type === 'LOOKUP_WORD') {
         lookupWord(e.data.word);
+      }
+      if (e.data.type === 'SELECT_TEXT') {
+        setSelectedText(typeof e.data.text === "string" ? e.data.text.trim() : "");
       }
     };
     window.addEventListener('message', handleMessage);
@@ -432,6 +437,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     }
     const n = localStorage.getItem("omega-reader-notes");
     if (n) setNotes(JSON.parse(n));
+    const h = localStorage.getItem("omega-reader-highlights");
+    if (h) setHighlights(JSON.parse(h));
     
     const handleResize = () => {
       const viewport = contentRef.current;
@@ -602,6 +609,34 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     localStorage.setItem("omega-reader-notes", JSON.stringify(updated));
   };
 
+  const sendToReaderFrames = (message: unknown) => {
+    document.querySelectorAll<HTMLIFrameElement>('iframe[title^="Reader"], iframe[title^="Página"]').forEach((frame) => {
+      frame.contentWindow?.postMessage(message, "*");
+    });
+  };
+
+  const addHighlight = () => {
+    if (!book || selectedText.length < 2) {
+      toast.error("Selecciona primero el texto que quieres destacar");
+      return;
+    }
+    const text = selectedText.replace(/\s+/g, " ").trim();
+    const updated = { ...highlights, [book.id]: Array.from(new Set([...(highlights[book.id] || []), text])) };
+    setHighlights(updated);
+    localStorage.setItem("omega-reader-highlights", JSON.stringify(updated));
+    sendToReaderFrames({ type: "HIGHLIGHT_SELECTION" });
+    setSelectedText("");
+    toast.success("Texto destacado");
+  };
+
+  const saveProgressAndExit = () => {
+    if (!book) return;
+    setBookLastPage(book.id, page);
+    if (isAuthenticated) updateProgressMutation.mutate({ bookId: book.id, lastPage: page });
+    toast.success("Progreso guardado");
+    onClose();
+  };
+
   const toggleTTS = () => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     if (isReading) {
@@ -690,13 +725,42 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       document.addEventListener('mouseup', () => {
         const selection = window.getSelection().toString();
         if (selection && selection.length > 2) {
+          window.parent.postMessage({ type: 'SELECT_TEXT', text: selection }, '*');
           window.parent.postMessage({ type: 'LOOKUP_WORD', word: selection }, '*');
         }
       });
       document.addEventListener('touchend', () => {
         const selection = window.getSelection().toString();
         if (selection && selection.length > 2) {
+          window.parent.postMessage({ type: 'SELECT_TEXT', text: selection }, '*');
           window.parent.postMessage({ type: 'LOOKUP_WORD', word: selection }, '*');
+        }
+      });
+      window.addEventListener('message', (event) => {
+        if (event.data?.type !== 'HIGHLIGHT_SELECTION') return;
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
+        const mark = document.createElement('mark');
+        mark.style.background = '#d4d4d4'; mark.style.color = '#000';
+        try { selection.getRangeAt(0).surroundContents(mark); } catch { /* selección cruza varios bloques */ }
+        selection.removeAllRanges();
+      });
+      window.addEventListener('message', (event) => {
+        if (event.data?.type !== 'APPLY_HIGHLIGHTS') return;
+        for (const text of event.data.texts || []) {
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          let node: Node | null;
+          while ((node = walker.nextNode())) {
+            const value = node.textContent || '';
+            const index = value.indexOf(text);
+            if (index < 0 || node.parentElement?.closest('mark')) continue;
+            const range = document.createRange();
+            range.setStart(node, index); range.setEnd(node, index + text.length);
+            const mark = document.createElement('mark');
+            mark.style.background = '#d4d4d4'; mark.style.color = '#000';
+            try { range.surroundContents(mark); } catch { /* texto ya alterado */ }
+            break;
+          }
         }
       });
     </script>
@@ -704,6 +768,12 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
   const srcDoc = useMemo(() => makeSrcDoc(pageHtml), [makeSrcDoc, pageHtml]);
   const nextSrcDoc = useMemo(() => makeSrcDoc(nextPageHtml), [makeSrcDoc, nextPageHtml]);
+
+  useEffect(() => {
+    if (!book || !isReady) return;
+    const timer = window.setTimeout(() => sendToReaderFrames({ type: "APPLY_HIGHLIGHTS", texts: highlights[book.id] || [] }), 150);
+    return () => window.clearTimeout(timer);
+  }, [book?.id, isReady, page, highlights]);
 
   if (!book) return null;
 
@@ -845,6 +915,17 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
                       <option value="'DM Serif Display', serif">Elegante</option>
                     </select>
                   </div>
+                  <div className="space-y-3 rounded-2xl border border-border/50 bg-secondary/30 p-4">
+                    <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest opacity-60"><Highlighter className="h-4 w-4" /> Destacador</div>
+                    <p className="text-xs leading-relaxed opacity-60">Selecciona texto en la página y pulsa el botón para conservarlo destacado.</p>
+                    <Button onClick={addHighlight} variant="outline" className="h-11 w-full rounded-xl" disabled={!selectedText}>
+                      <Highlighter className="mr-2 h-4 w-4" />{selectedText ? "Destacar selección" : "Selecciona un texto"}
+                    </Button>
+                    <p className="text-[10px] opacity-45">{highlights[book.id]?.length || 0} destacador(es) guardado(s)</p>
+                  </div>
+                  <Button onClick={saveProgressAndExit} className="h-12 w-full rounded-2xl shadow-lg">
+                    <Save className="mr-2 h-4 w-4" /> Guardar progreso y salir
+                  </Button>
                 </div>
               </div>
             )}
