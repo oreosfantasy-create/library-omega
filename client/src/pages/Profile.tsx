@@ -52,26 +52,28 @@ export default function Profile() {
       <Navbar />
               <main className="container flex-1 py-8 sm:py-12 mb-24 sm:mb-0">
 
-        <div className="mx-auto max-w-4xl space-y-8 sm:space-y-12">
+        <div className="mx-auto max-w-6xl space-y-8 sm:space-y-12">
         
         {/* Header Elite */}
-        <header className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h2 className="font-display text-4xl tracking-tight">Tu Legado</h2>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Perfil de Lector Omega</p>
+        <header className="flex items-end justify-between gap-4 border-b border-border/50 pb-6">
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Tu espacio de lectura</p>
+            <h2 className="font-display text-4xl tracking-tight sm:text-5xl">Tu Legado</h2>
+            <p className="max-w-md text-sm text-muted-foreground">Tu progreso, tus hábitos y las metas que has conquistado en Library Omega.</p>
           </div>
           <button onClick={toggleTheme} className="h-12 w-12 flex items-center justify-center rounded-2xl bg-secondary/50 border border-border/50 shadow-lg">
             {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
           </button>
         </header>
 
-        <div className="grid lg:grid-cols-[1fr_320px] gap-12">
-          <div className="space-y-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
+          <div className="space-y-8 sm:space-y-10">
             {/* Mascot & Level Elite */}
-            <section className="static-card !bg-foreground p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-12 text-background premium-shadow overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-12 opacity-5 rotate-12"><Trophy className="h-64 w-64" /></div>
-              <div className="w-48 shrink-0 relative z-10"><CatMascot /></div>
-              <div className="flex-1 space-y-8 relative z-10 w-full">
+            <section className="static-card grid gap-5 bg-secondary/25 p-3 sm:grid-cols-[minmax(250px,0.9fr)_minmax(0,1.1fr)] sm:p-5">
+              <div className="min-w-0"><CatMascot /></div>
+              <div className="relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[1.5rem] bg-foreground p-6 text-background shadow-xl sm:p-8">
+                <div className="pointer-events-none absolute -right-10 -top-10 opacity-10"><Trophy className="h-48 w-48" /></div>
+                <div className="relative z-10 space-y-8">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <Award className="h-6 w-6 text-primary" />
@@ -102,11 +104,12 @@ export default function Profile() {
                     <p className="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">Libros Leídos</p>
                   </div>
                 </div>
+                </div>
               </div>
             </section>
 
             {/* Quote Elite */}
-            <section className="relative p-12 text-center overflow-hidden rounded-[2.5rem] bg-secondary/30">
+            <section className="relative overflow-hidden rounded-[1.75rem] border border-border/50 bg-secondary/25 p-8 text-center sm:p-12">
               <Quote className="absolute top-8 left-8 h-12 w-12 opacity-5" />
               <blockquote className="relative z-10 font-display text-2xl leading-relaxed italic" key={quoteIndex}>
                 “{BOOK_QUOTES[quoteIndex].quote}”
@@ -115,7 +118,7 @@ export default function Profile() {
             </section>
 
             {/* Stats Elite */}
-            <section className="static-card p-8 space-y-8">
+            <section className="static-card space-y-8 p-6 sm:p-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-secondary rounded-xl"><BarChart2 className="h-5 w-5 opacity-40" /></div>
