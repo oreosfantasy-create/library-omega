@@ -46,13 +46,19 @@ export default function AdminPanel() {
     const valid = files.filter(acceptFile);
     if (valid.length === 0) return;
     setUploading(true);
-    for (const file of valid) {
-      try {
-        await addBook(file, defaultCategory);
-        toast.success(`"${file.name}" añadido`);
-      } catch {
-        toast.error(`Error con "${file.name}"`);
-      }
+    // No se impone un límite de cantidad: se procesan pequeños lotes para
+    // permitir cientos de libros sin saturar el navegador ni el almacenamiento.
+    const batchSize = 4;
+    for (let start = 0; start < valid.length; start += batchSize) {
+      const batch = valid.slice(start, start + batchSize);
+      await Promise.all(batch.map(async (file) => {
+        try {
+          await addBook(file, defaultCategory);
+          toast.success(`"${file.name}" añadido`);
+        } catch {
+          toast.error(`Error con "${file.name}"`);
+        }
+      }));
     }
     setUploading(false);
     setPendingFiles([]);
@@ -113,7 +119,7 @@ export default function AdminPanel() {
               <div className="p-4 bg-secondary rounded-full"><Upload className="h-8 w-8 opacity-40" /></div>
               <div className="space-y-2">
                 <p className="font-display text-2xl tracking-tight">Cargar Nuevos Volúmenes</p>
-                <p className="text-xs font-medium opacity-40">Arrastra archivos PDF o EPUB hasta 150MB</p>
+                <p className="text-xs font-medium opacity-40">Arrastra tantos PDF o EPUB como necesites · hasta 150MB por archivo</p>
               </div>
               <input id="file-input" type="file" accept=".pdf,.epub" multiple className="hidden" onChange={(e) => setPendingFiles(Array.from(e.target.files ?? []))} />
             </div>

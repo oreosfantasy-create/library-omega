@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Book } from "@/lib/libraryStore";
 import { useLibrary } from "@/lib/libraryStore";
-import { X, ChevronLeft, ChevronRight, Settings, Play, Pause, Plus, Trash2, Maximize2, Minimize2, BookOpen, MessageSquare, Search } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Settings, Play, Pause, Plus, Trash2, Maximize2, Minimize2, BookOpen, MessageSquare, Search, SlidersHorizontal, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -671,7 +671,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     <style>
       body {
         background:${colors.bg}; color:${colors.text}; font-family:${fontFamily}; font-size:${fontSize}rem; line-height:${lineHeight}; 
-        padding: 2rem ${sideMargins}rem 5rem; margin:0; overflow:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%;
+        padding: 2rem ${sideMargins}rem 8rem; margin:0; overflow-y:auto; overflow-x:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%; scrollbar-width:auto; scrollbar-color:${colors.text} ${colors.bg};
         pointer-events: auto;
       }
       body, body * { color:${colors.text} !important; }
@@ -682,8 +682,9 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       h1,h2,h3 { margin:0 0 1rem; line-height:1.2; break-after:avoid; }
       .reader-break { height:0.35rem; }
       ::selection { background: var(--primary); color: white; }
-      body::-webkit-scrollbar { width: 4px; }
-      body::-webkit-scrollbar-thumb { background: ${colors.border}; border-radius: 10px; }
+      body::-webkit-scrollbar { width: 14px; }
+      body::-webkit-scrollbar-track { background: ${colors.bg}; border-left: 1px solid ${colors.border}; }
+      body::-webkit-scrollbar-thumb { background: ${colors.text}; border: 4px solid ${colors.bg}; border-radius: 10px; min-height: 48px; }
     </style>
     <script>
       document.addEventListener('mouseup', () => {
@@ -802,6 +803,17 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
           )}
         </div>
 
+        {/* Barra rápida: disponible incluso al abrir en modo enfoque. */}
+        <div className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-2 rounded-2xl border border-border/30 bg-background/90 p-2 shadow-xl backdrop-blur-xl sm:right-5" aria-label="Herramientas del lector">
+          <button onClick={() => setShowSettings(value => !value)} aria-label="Configuración de color, fuente y tamaño" aria-pressed={showSettings} className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-foreground hover:text-background active:scale-90 ${showSettings ? "bg-foreground text-background" : "bg-secondary/60"}`}>
+            <SlidersHorizontal className="h-5 w-5" />
+          </button>
+          <button onClick={() => setShowNotes(value => !value)} aria-label="Notas destacables" aria-pressed={showNotes} className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-foreground hover:text-background active:scale-90 ${showNotes ? "bg-foreground text-background" : "bg-secondary/60"}`}>
+            <Bookmark className="h-5 w-5" />
+            {notes[book.id]?.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-foreground" />}
+          </button>
+        </div>
+
         {/* Side Panels (Settings/Notes/Dictionary) */}
         {(showSettings || showNotes || dictionaryWord) && (
           <aside className="w-full sm:w-80 border-l border-border/10 p-8 space-y-8 animate-in slide-in-from-right duration-300 bg-background/50 backdrop-blur-xl z-50 overflow-y-auto">
@@ -849,7 +861,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
                 </div>
                 <div className="space-y-3">
                   {notes[book.id]?.map((note, i) => (
-                    <div key={i} className="p-4 bg-secondary/50 rounded-2xl border border-border/50 group relative">
+                    <div key={i} className="relative rounded-2xl border border-border/50 bg-secondary/50 p-4 shadow-sm group">
+                      <div className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest opacity-50"><Bookmark className="h-3 w-3" /> Nota destacable {i + 1}</div>
                       <p className="text-xs leading-relaxed">{note}</p>
                       <button onClick={() => deleteNote(i)} className="absolute top-2 right-2 p-1 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-3 w-3" /></button>
                     </div>
