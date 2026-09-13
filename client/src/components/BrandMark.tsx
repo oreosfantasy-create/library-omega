@@ -3,10 +3,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 const LIGHT_LOGO_URL = "/manus-storage/library-omega-light-clean_b0439118.png";
 const DARK_LOGO_URL = "/manus-storage/library-omega-dark-clean_1c827907.png";
 const sizeClasses = {
-  nav: "h-8 w-8 rounded-lg sm:h-10 sm:w-10 sm:rounded-xl",
+  nav: "h-9 w-9 rounded-lg sm:h-12 sm:w-12 sm:rounded-2xl",
   sm: "h-10 w-10 rounded-xl",
   md: "h-12 w-12 rounded-2xl",
-  lg: "h-32 w-32 rounded-[2rem]",
+  lg: "h-36 w-36 rounded-[2.25rem] sm:h-44 sm:w-44 sm:rounded-[2.75rem]",
 } as const;
 export type BrandMarkSize = keyof typeof sizeClasses;
 
