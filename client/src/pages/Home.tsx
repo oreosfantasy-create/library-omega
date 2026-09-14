@@ -220,7 +220,7 @@ function HomeShelf({ id, eyebrow, title, books, onOpen, isRead }: { id?: string;
   return (
     <section id={id} className="space-y-5 scroll-mt-24">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">{eyebrow}</p><h2 className="font-display text-3xl tracking-tight sm:text-4xl">{title}</h2></div><span className="text-[10px] font-black uppercase tracking-widest opacity-40">{books.length} tomos</span></div>
-      {books.length === 0 ? <div className="catalog-card border-dashed p-10 text-center"><p className="font-display text-xl opacity-40">Nuevos títulos pronto...</p></div> : <div className="shelf-stack"><div className="shelf-books">{books.slice(0, 8).map((book, i) => <div key={book.id} className="shelf-book-wrap"><BookCard book={book} index={i} onOpen={onOpen} read={isRead(book.id)} /></div>)}</div><div className="shelf-plank" /></div>}
+      {books.length === 0 ? <div className="catalog-card border-dashed p-10 text-center"><p className="font-display text-xl opacity-40">Nuevos títulos pronto...</p></div> : <div className={`shelf-stack ${id === "omega-shelf" ? "featured-shelf" : ""}`}><div className="shelf-sparkle shelf-sparkle-one" /><div className="shelf-sparkle shelf-sparkle-two" /><div className={`shelf-books ${id === "omega-shelf" ? "featured-shelf-books" : ""}`}>{books.slice(0, 8).map((book, i) => <div key={book.id} className="shelf-book-wrap"><BookCard book={book} index={i} onOpen={onOpen} read={isRead(book.id)} /></div>)}</div><div className="shelf-plank" /></div>}
     </section>
   );
 }
