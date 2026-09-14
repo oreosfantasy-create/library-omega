@@ -715,11 +715,9 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     };
   }, [cloudQuery.data, state.books]);
 
-  const removeBookMutation = trpc.books.remove.useMutation({
+  const removeBookWithPasswordMutation = trpc.books.removeWithPassword.useMutation({
     onSuccess: () => void utils.books.list.invalidate(),
-    onError: (err) => {
-      toast.error(err.message || "No se pudo eliminar el libro");
-    },
+    onError: (err) => toast.error(err.message || "No se pudo eliminar el libro"),
   });
 
   // ---- Estado personal (XP, racha, leídos) en localStorage/IndexedDB ----
@@ -1133,14 +1131,17 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         books: prev.books.filter((b) => b.id !== bookId),
         readBookIds: prev.readBookIds.filter((id) => id !== bookId),
       }));
+      setCloudBooks((prev) => prev.filter((b) => b.id !== bookId));
+      setFolderBooks((prev) => prev.filter((b) => b.id !== bookId));
       // Borrar el blob de IndexedDB si existe
       void idbDel(IDB_FILE_PREFIX + bookId);
-      // Borrar de la nube: los libros de nube tienen id de servidor (formato ts-xxxx)
+      // Borrar de la nube: los libros de nube tienen id de servidor (formato ts-xxxx).
+      // Administración entra con contraseña Elite, no necesariamente con OAuth.
       if (/^\d+-[a-z0-9]+$/.test(bookId)) {
-        removeBookMutation.mutate({ id: bookId });
+        removeBookWithPasswordMutation.mutate({ id: bookId, password: ADMIN_PASSWORD });
       }
     },
-    [removeBookMutation]
+    [removeBookWithPasswordMutation]
   );
 
   /** Los libros de carpeta también dan XP al terminarlos (no se guardan en localStorage) */

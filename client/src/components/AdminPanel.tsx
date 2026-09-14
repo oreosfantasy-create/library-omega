@@ -251,7 +251,15 @@ export default function AdminPanel() {
                       <Sparkles className="h-4 w-4" />
                       <span className="hidden lg:inline">{b.featured ? "Destacado" : "Destacar"}</span>
                     </button>
-                    <button onClick={() => removeBook(b.id)} className="p-3 text-destructive hover:bg-destructive/10 rounded-xl transition-colors"><Trash2 className="h-5 w-5" /></button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm(`¿Eliminar “${b.title}” de la biblioteca? Esta acción no se puede deshacer.`)) removeBook(b.id);
+                      }}
+                      title="Eliminar libro"
+                      aria-label={`Eliminar ${b.title}`}
+                      className="rounded-xl p-3 text-destructive transition-colors hover:bg-destructive/10"
+                    ><Trash2 className="h-5 w-5" /></button>
                   </div>
                 </div>
               ))}

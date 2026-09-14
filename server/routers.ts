@@ -143,6 +143,14 @@ export const appRouter = router({
         return { success: true } as const;
       }),
 
+    removeWithPassword: publicProcedure
+      .input(z.object({ id: z.string().min(1), password: z.string() }))
+      .mutation(async ({ input }) => {
+        if (input.password !== ADMIN_PASSWORD) throw new TRPCError({ code: "UNAUTHORIZED" });
+        await db.deleteBook(input.id);
+        return { success: true } as const;
+      }),
+
     updateMetadata: protectedProcedure
       .input(z.object({ id: z.string().min(1), category: z.string().optional(), age: z.string().optional(), featured: z.boolean().optional() }))
       .mutation(async ({ ctx, input }) => {
