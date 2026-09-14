@@ -21,7 +21,7 @@ export default function AdminPanel() {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [defaultCategory, setDefaultCategory] = useState<BookCategory | "auto">("auto");
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"inventory" | "access" | "reviews">("inventory");
+  const [activeTab, setActiveTab] = useState<"inventory" | "featured" | "access" | "reviews">("inventory");
 
   const visibleBooks = useMemo(() => {
     const q = search.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -86,6 +86,7 @@ export default function AdminPanel() {
         <nav className="flex gap-2 p-1.5 bg-secondary/50 rounded-2xl border border-border/50 w-fit">
           {[
             { id: "inventory", label: "Inventario", icon: LayoutGrid },
+            { id: "featured", label: "Destacados", icon: Star },
             { id: "access", label: "Accesos", icon: History },
             { id: "reviews", label: "Reseñas", icon: MessageSquare },
           ].map((tab) => (
@@ -103,7 +104,44 @@ export default function AdminPanel() {
         </nav>
       </div>
 
-      {activeTab === "inventory" ? (
+      {activeTab === "featured" ? (
+        <section className="space-y-8 animate-in fade-in duration-500" aria-labelledby="featured-books-title">
+          <div className="rounded-[1.75rem] border border-border/50 bg-foreground p-6 text-background shadow-xl sm:p-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-background text-foreground"><Star className="h-5 w-5" /></div>
+                <div>
+                  <h3 id="featured-books-title" className="font-display text-3xl tracking-tight">Selección Omega</h3>
+                  <p className="mt-1 max-w-xl text-sm text-background/60">Elige los libros que aparecerán destacados en la interfaz principal. Puedes seleccionar varios.</p>
+                </div>
+              </div>
+              <span className="w-fit rounded-full border border-background/20 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-background/70">{catalogBooks.filter((book) => book.featured).length} seleccionados</span>
+            </div>
+          </div>
+
+          {catalogBooks.length === 0 ? (
+            <div className="rounded-[1.75rem] border border-dashed border-border/60 p-12 text-center text-muted-foreground">Carga libros para elegir tus destacados.</div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {catalogBooks.map((book) => (
+                <article key={book.id} className={`catalog-card overflow-hidden p-3 transition-all ${book.featured ? "ring-2 ring-foreground" : ""}`}>
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
+                    {book.coverUrl ? <img src={book.coverUrl} alt={`Portada de ${book.title}`} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><FileText className="h-10 w-10 opacity-20" /></div>}
+                    {book.featured && <span className="absolute left-3 top-3 rounded-full bg-foreground px-3 py-1 text-[9px] font-black uppercase tracking-widest text-background">Destacado</span>}
+                  </div>
+                  <div className="space-y-3 p-3">
+                    <h4 className="line-clamp-2 font-display text-xl leading-tight">{book.title}</h4>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{book.category} · {book.age}</p>
+                    <button type="button" onClick={() => updateBookFeatured(book.id, !book.featured)} className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${book.featured ? "bg-foreground text-background" : "border border-border/50 bg-secondary/50 hover:bg-foreground hover:text-background"}`}>
+                      <Star className="h-4 w-4" /> {book.featured ? "Quitar destacado" : "Elegir destacado"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : activeTab === "inventory" ? (
         <div className="space-y-10">
           <section className="grid md:grid-cols-[1fr_350px] gap-8">
             <div
