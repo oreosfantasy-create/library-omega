@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Book } from "@/lib/libraryStore";
 import { useLibrary } from "@/lib/libraryStore";
-import { X, ChevronLeft, ChevronRight, Settings, Play, Pause, Plus, Trash2, Maximize2, Minimize2, BookOpen, MessageSquare, Search, SlidersHorizontal, Bookmark, Highlighter, Save } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Settings, Play, Pause, Plus, Trash2, Maximize2, Minimize2, BookOpen, MessageSquare, Search, SlidersHorizontal, Bookmark, Highlighter, Save, MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -402,6 +402,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const [fontFamily, setFontFamily] = useState("'Inter', sans-serif");
   const [showSettings, setShowSettings] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(true);
+  const [readerMode, setReaderMode] = useState<"auto" | "desktop" | "mobile">("auto");
+  const [isMobileReader, setIsMobileReader] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
 
   const [notes, setNotes] = useState<Record<string, string[]>>({});
   const [showNotes, setShowNotes] = useState(false);
@@ -434,6 +436,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       setFontSize(p.fontSize || 1.0);
       setLineHeight(p.lineHeight || 1.55);
       setFontFamily(p.fontFamily || "'Inter', sans-serif");
+      setReaderMode(p.readerMode || "auto");
     }
     const n = localStorage.getItem("omega-reader-notes");
     if (n) setNotes(JSON.parse(n));
@@ -444,12 +447,14 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       const viewport = contentRef.current;
       const width = viewport?.clientWidth || window.innerWidth;
       const height = viewport?.clientHeight || window.innerHeight - 170;
-      const isSpread = book?.fileType === "epub" && width >= 640;
+      const mobile = readerMode === "mobile" || (readerMode === "auto" && width < 640);
+      const isSpread = book?.fileType === "epub" && !mobile;
       const pageWidth = isSpread ? Math.floor((width - 42) / 2) : width;
       const horizontalPadding = isSpread ? 128 : 48;
       // Reservar una franja inferior limpia para que ningún párrafo termine contra el borde.
       setPageHeight(Math.max(240, height - (isSpread ? 128 : 120)));
       setContentWidth(Math.max(240, pageWidth - horizontalPadding));
+      setIsMobileReader(mobile);
     };
     window.addEventListener("resize", handleResize);
     const observer = typeof ResizeObserver !== "undefined" && contentRef.current
@@ -461,11 +466,11 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       window.removeEventListener("resize", handleResize);
       observer?.disconnect();
     };
-  }, [book?.fileType]);
+  }, [book?.fileType, readerMode]);
 
   useEffect(() => {
-    localStorage.setItem("omega-reader-settings", JSON.stringify({ theme, fontSize, lineHeight, fontFamily }));
-  }, [theme, fontSize, lineHeight, fontFamily]);
+    localStorage.setItem("omega-reader-settings", JSON.stringify({ theme, fontSize, lineHeight, fontFamily, readerMode }));
+  }, [theme, fontSize, lineHeight, fontFamily, readerMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -562,7 +567,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
   const paginated = useMemo(() => paginate(allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily), [allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily]);
   const readerPageCount = book?.fileType === "pdf" ? pdfPageCount : paginated.pageCount;
-  const pageStep = book?.fileType === "epub" && contentWidth < 600 ? 1 : book?.fileType === "epub" ? 2 : 1;
+  const pageStep = book?.fileType === "epub" && isMobileReader ? 1 : book?.fileType === "epub" ? 2 : 1;
   const currentPageChunks = useMemo(() => {
     if (book?.fileType === "pdf") return pdfPageImage ? [pdfPageImage] : [];
     return allChunks.filter((_, index) => paginated.chunkPageIdx[index] === page);
@@ -637,6 +642,14 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     onClose();
   };
 
+  const toggleReaderMode = () => {
+    const next = readerMode === "desktop" ? "mobile" : "desktop";
+    setReaderMode(next);
+    setIsMobileReader(next === "mobile");
+    setPage((currentPage) => next === "mobile" ? currentPage : currentPage - (currentPage % 2));
+    toast.success(next === "mobile" ? "Modo móvil: una hoja" : "Modo computador: doble página");
+  };
+
   const toggleTTS = () => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     if (isReading) {
@@ -687,9 +700,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   })[theme], [theme]);
 
   const sideMargins = useMemo(() => {
-    if (typeof window === 'undefined') return 2;
-    return window.innerWidth < 640 ? 1 : 4;
-  }, []);
+    return isMobileReader ? 1.35 : 4;
+  }, [isMobileReader]);
 
   const renderPageHtml = useCallback((chunks: NodeChunk[]) => chunks.map(c => {
     if (c.kind === "img") return `<img src="${escapeHtml(c.value)}" alt="${escapeHtml(c.altText || "Página del documento PDF")}" class="${c.block === "pdf-page" ? "pdf-page-image" : "epub-image"}" />`;
@@ -706,7 +718,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     <style>
       body {
         background:${colors.bg}; color:${colors.text}; font-family:${fontFamily}; font-size:${fontSize}rem; line-height:${lineHeight}; 
-        padding: 2rem ${sideMargins}rem 8rem; margin:0; overflow-y:auto; overflow-x:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%; scrollbar-width:auto; scrollbar-color:${colors.text} ${colors.bg};
+        padding: ${isMobileReader ? "2.25rem" : "2rem"} ${sideMargins}rem ${isMobileReader ? "9.5rem" : "8rem"}; margin:0; overflow-y:auto; overflow-x:hidden; overflow-wrap:anywhere; text-align:left; word-wrap:break-word; box-sizing:border-box; height:100%; min-height:100%; scrollbar-width:auto; scrollbar-color:${colors.text} ${colors.bg};
         pointer-events: auto;
       }
       body, body * { color:${colors.text} !important; }
@@ -764,7 +776,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
         }
       });
     </script>
-    </head><body>${html}</body></html>`, [colors, fontFamily, fontSize, lineHeight, sideMargins]);
+    </head><body>${html}</body></html>`, [colors, fontFamily, fontSize, lineHeight, sideMargins, isMobileReader]);
 
   const srcDoc = useMemo(() => makeSrcDoc(pageHtml), [makeSrcDoc, pageHtml]);
   const nextSrcDoc = useMemo(() => makeSrcDoc(nextPageHtml), [makeSrcDoc, nextPageHtml]);
@@ -875,6 +887,9 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
         {/* Barra rápida: disponible incluso al abrir en modo enfoque. */}
         <div className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-2 rounded-2xl border border-border/30 bg-background/90 p-2 shadow-xl backdrop-blur-xl sm:right-5" aria-label="Herramientas del lector">
+          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador" : "Cambiar a modo móvil"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90">
+            <MonitorSmartphone className="h-5 w-5" />
+          </button>
           <button onClick={() => setShowSettings(value => !value)} aria-label="Configuración de color, fuente y tamaño" aria-pressed={showSettings} className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-foreground hover:text-background active:scale-90 ${showSettings ? "bg-foreground text-background" : "bg-secondary/60"}`}>
             <SlidersHorizontal className="h-5 w-5" />
           </button>

@@ -52,7 +52,7 @@ export default function Navbar() {
 
   return (
     <header className="omega-header sticky top-0 z-50 w-full">
-      <div className="container flex min-w-0 h-11 items-center justify-between gap-0.5 sm:h-24 sm:gap-5">
+      <div className="container flex min-w-0 h-16 items-center justify-between gap-2 sm:h-24 sm:gap-5">
         {/* Marca Elite & Back Button */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
           {location !== "/" && (
@@ -77,14 +77,14 @@ export default function Navbar() {
         </div>
 
         {/* Navegación Desktop Elite */}
-        <nav aria-label="Navegación principal" className="omega-nav hidden md:flex items-center gap-1 p-1">
+        <nav aria-label="Navegación principal" className="omega-nav flex min-w-0 items-center gap-0.5 overflow-x-auto p-1 sm:gap-1">
           {tabs.map((t) => {
             const isActive = location === t.path;
             return (
               <button
                 key={t.path}
                 onClick={() => navigate(t.path)}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] ${
+                  className={`flex shrink-0 items-center gap-1 rounded-xl px-2 py-2 text-[8px] font-black uppercase tracking-[0.1em] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-[10px] sm:tracking-[0.14em] ${
                   isActive
                     ? "bg-foreground text-background shadow-lg"
                     : "text-muted-foreground hover:text-foreground hover:bg-background/50"
@@ -169,7 +169,7 @@ export default function Navbar() {
       </div>
 
       {/* Navegación Móvil Elite (Inferior) */}
-      <nav aria-label="Navegación móvil" className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 flex md:hidden max-w-[calc(100vw-1rem)] items-center gap-1 sm:gap-2 p-1.5 sm:p-2 bg-background/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl border border-border/50 shadow-2xl premium-shadow overflow-x-auto">
+      <nav aria-label="Navegación móvil" className="hidden">
         {tabs.map((t) => {
           const isActive = location === t.path;
           return (
