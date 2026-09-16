@@ -715,7 +715,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     };
   }, [cloudQuery.data, state.books]);
 
-  const removeBookWithPasswordMutation = trpc.books.removeWithPassword.useMutation({
+  const removeBookMutation = trpc.books.remove.useMutation({
     onSuccess: () => {
       toast.success("Libro eliminado correctamente");
       void utils.books.list.invalidate();
@@ -1151,9 +1151,9 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       // Administración entra con contraseña Elite, no necesariamente con OAuth.
       // Se envía cualquier ID: si es un libro local/de carpeta, el borrado SQL es
       // inocuo; si es remoto, desaparece también de la biblioteca global.
-      removeBookWithPasswordMutation.mutate({ id: bookId, password: ADMIN_PASSWORD });
+      removeBookMutation.mutate({ id: bookId });
     },
-    [removeBookWithPasswordMutation]
+    [removeBookMutation]
   );
 
   /** Los libros de carpeta también dan XP al terminarlos (no se guardan en localStorage) */
