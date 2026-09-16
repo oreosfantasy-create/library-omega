@@ -716,7 +716,10 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   }, [cloudQuery.data, state.books]);
 
   const removeBookWithPasswordMutation = trpc.books.removeWithPassword.useMutation({
-    onSuccess: () => void utils.books.list.invalidate(),
+    onSuccess: () => {
+      toast.success("Libro eliminado correctamente");
+      void utils.books.list.invalidate();
+    },
     onError: (err) => toast.error(err.message || "No se pudo eliminar el libro"),
   });
 
@@ -1145,11 +1148,10 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       setFolderBooks((prev) => prev.filter((b) => b.id !== bookId));
       // Borrar el blob de IndexedDB si existe
       void idbDel(IDB_FILE_PREFIX + bookId);
-      // Borrar de la nube: los libros de nube tienen id de servidor (formato ts-xxxx).
       // Administración entra con contraseña Elite, no necesariamente con OAuth.
-      if (/^\d+-[a-z0-9]+$/.test(bookId)) {
-        removeBookWithPasswordMutation.mutate({ id: bookId, password: ADMIN_PASSWORD });
-      }
+      // Se envía cualquier ID: si es un libro local/de carpeta, el borrado SQL es
+      // inocuo; si es remoto, desaparece también de la biblioteca global.
+      removeBookWithPasswordMutation.mutate({ id: bookId, password: ADMIN_PASSWORD });
     },
     [removeBookWithPasswordMutation]
   );
