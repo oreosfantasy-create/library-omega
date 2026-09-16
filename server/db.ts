@@ -171,6 +171,11 @@ export async function listUserProgress(userId: number) {
 export async function deleteBook(id: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // user_progress tiene una FK hacia books sin ON DELETE CASCADE.
+  // Limpiamos dependencias antes del registro principal para que el borrado
+  // administrativo funcione también con libros ya abiertos o marcados.
+  await db.delete(userProgress).where(eq(userProgress.bookId, id));
+  await db.delete(reviews).where(eq(reviews.bookId, id));
   await db.delete(books).where(eq(books.id, id));
 }
 
