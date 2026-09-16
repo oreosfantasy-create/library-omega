@@ -64,10 +64,15 @@ const trpcClient = trpc.createClient({
         return {};
       },
       fetch(input, init) {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 20000);
+        const callerSignal = init?.signal;
+        if (callerSignal) callerSignal.addEventListener("abort", () => controller.abort(), { once: true });
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
-        });
+          signal: controller.signal,
+        }).finally(() => window.clearTimeout(timeout));
       },
     }),
   ],

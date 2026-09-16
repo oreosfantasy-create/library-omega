@@ -990,7 +990,12 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       // Intentar extraer portada del EPUB
       let coverUrl: string | null = null;
       if (fileType === "epub") {
-        coverUrl = await extractEpubCover(dataUrl);
+        try {
+          coverUrl = await extractEpubCover(dataUrl);
+        } catch {
+          // La portada es opcional: un EPUB válido debe importarse aunque su imagen falle.
+          coverUrl = null;
+        }
       }
       const title = file.name.replace(/\.(pdf|epub)$/i, "").trim();
       // Si el admin no indicó categoría, se clasifica automáticamente por el título.
@@ -1006,8 +1011,8 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         coverUrl,
         addedAt: Date.now(),
       };
-      // Subir a la nube en paralelo (no bloquea la vista del libro ya cargado)
-      addBookMutation.mutate({
+      // Esperar la confirmación remota para no perder libros ni mostrar falsos éxitos.
+      const remote = await addBookMutation.mutateAsync({
         password: ADMIN_PASSWORD,
         fileName: file.name,
         category: category ?? (auto?.category ?? "Otros"),
@@ -1016,7 +1021,12 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         mimeType: fileType === "epub" ? "application/epub+zip" : "application/pdf",
         coverBase64: coverUrl?.split(",")[1],
       });
-      return book;
+      const completeBook = { ...book, id: remote.id };
+      setState((prev) => ({
+        ...prev,
+        books: [completeBook, ...prev.books.filter((existing) => existing.id !== completeBook.id)],
+      }));
+      return completeBook;
     },
     [addBookMutation]
   );

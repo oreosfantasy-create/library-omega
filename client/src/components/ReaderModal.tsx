@@ -82,7 +82,7 @@ function imageMimeType(path: string, declared: string): string | null {
   return extension ? byExtension[extension] || null : null;
 }
 
-type ZipAsset = { async: (type: "base64") => Promise<string> };
+type ZipAsset = { async: (type: "base64" | "text") => Promise<string> };
 
 type ZipArchive = {
   file: (path: string) => ZipAsset | null;
@@ -212,9 +212,9 @@ async function parseEpub(dataUrl: string): Promise<{
   const opfPath = rootfile.getAttribute("full-path");
   if (!opfPath) throw new Error("EPUB sin archivo OPF válido");
   const opfDir = opfPath.includes("/") ? opfPath.substring(0, opfPath.lastIndexOf("/") + 1) : "";
-  const opfFile = zip.file(resolveZipPath("", opfPath));
-  if (!opfFile) throw new Error("EPUB sin archivo OPF válido");
-  const opfXml = await opfFile.async("text");
+  const opfAsset = findZipAsset(zip, resolveZipPath("", opfPath));
+  if (!opfAsset) throw new Error("EPUB sin archivo OPF válido");
+  const opfXml = await opfAsset.file.async("text");
   const opfDoc = new DOMParser().parseFromString(opfXml, "application/xml");
 
   const manifest = new Map<string, { href: string; mediaType: string }>();
@@ -238,12 +238,12 @@ async function parseEpub(dataUrl: string): Promise<{
   for (const id of spineIds) {
     const item = manifest.get(id);
     if (!item) continue;
-    const isHtml = item.mediaType.includes("html") || /\\.(?:xhtml|html?)$/i.test(item.href.split("#")[0]);
+    const isHtml = item.mediaType.includes("html") || /\.(?:xhtml|html?)$/i.test(item.href.split("#")[0]);
     if (!isHtml) continue;
     const chapterPath = resolveZipPath(opfDir, item.href);
-    const file = zip.file(chapterPath);
-    if (!file) continue;
-    const html = await file.async("text");
+    const chapterAsset = findZipAsset(zip, chapterPath);
+    if (!chapterAsset) continue;
+    const html = await chapterAsset.file.async("text");
     const doc = new DOMParser().parseFromString(html, "text/html");
     const body = doc.body;
     if (!body) continue;
@@ -296,7 +296,23 @@ function flattenBody(html: string): NodeChunk[] {
     }
   };
   walk(doc.firstElementChild || doc.body);
-  return chunks;
+  const safeChunks: NodeChunk[] = [];
+  for (const chunk of chunks) {
+    if (chunk.kind !== "text" || chunk.value.length <= 900) {
+      safeChunks.push(chunk);
+      continue;
+    }
+    let remaining = chunk.value.trim();
+    while (remaining.length > 0) {
+      const limit = Math.min(900, remaining.length);
+      let cut = remaining.lastIndexOf(" ", limit);
+      if (cut < 300) cut = limit;
+      const part = remaining.slice(0, cut).trim();
+      if (part) safeChunks.push({ ...chunk, value: part });
+      remaining = remaining.slice(cut).trim();
+    }
+  }
+  return safeChunks;
 }
 
 function cleanReaderText(value: string): string {
@@ -568,6 +584,13 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const paginated = useMemo(() => paginate(allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily), [allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily]);
   const readerPageCount = book?.fileType === "pdf" ? pdfPageCount : paginated.pageCount;
   const pageStep = book?.fileType === "epub" && isMobileReader ? 1 : book?.fileType === "epub" ? 2 : 1;
+  useEffect(() => {
+    if (book?.fileType !== "epub" || !readerPageCount) return;
+    setPage((current) => {
+      const normalized = pageStep === 2 ? current - (current % 2) : current;
+      return Math.min(Math.max(0, normalized), readerPageCount - 1);
+    });
+  }, [book?.fileType, readerPageCount, pageStep]);
   const currentPageChunks = useMemo(() => {
     if (book?.fileType === "pdf") return pdfPageImage ? [pdfPageImage] : [];
     return allChunks.filter((_, index) => paginated.chunkPageIdx[index] === page);
