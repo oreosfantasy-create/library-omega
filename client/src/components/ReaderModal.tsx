@@ -916,7 +916,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
         {/* Barra rápida: disponible incluso al abrir en modo enfoque. */}
         <div className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-2 rounded-2xl border border-border/30 bg-background/90 p-2 shadow-xl backdrop-blur-xl sm:right-5" aria-label="Herramientas del lector">
-          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador" : "Cambiar a modo móvil"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90">
+          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador" : "Cambiar a modo móvil"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="hidden h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90 sm:flex">
             <MonitorSmartphone className="h-5 w-5" />
           </button>
           <button onClick={() => setShowSettings(value => !value)} aria-label="Configuración de color, fuente y tamaño" aria-pressed={showSettings} className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-foreground hover:text-background active:scale-90 ${showSettings ? "bg-foreground text-background" : "bg-secondary/60"}`}>

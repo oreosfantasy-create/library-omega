@@ -7,7 +7,7 @@ import { useLibrary, XP_PER_LEVEL, MAX_LEVEL } from "@/lib/libraryStore";
 import CatMascot from "@/components/CatMascot";
 import Navbar from "@/components/Navbar";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Award, BookOpen, Flame, RotateCcw, Moon, Sun, BarChart2, Zap, Trophy, Quote } from "lucide-react";
+import { Award, BookOpen, Flame, RotateCcw, Moon, Sun, BarChart2, Zap, Trophy, Quote, MonitorSmartphone } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const BOOK_QUOTES = [
@@ -23,6 +23,26 @@ export default function Profile() {
   const { theme, toggleTheme } = useTheme();
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [resetArmed, setResetArmed] = useState(false);
+  const [readerMode, setReaderMode] = useState<"auto" | "desktop" | "mobile">("auto");
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("omega-reader-settings") || "{}");
+      if (["auto", "desktop", "mobile"].includes(saved.readerMode)) setReaderMode(saved.readerMode);
+    } catch {
+      // Preferir el modo automático si la preferencia está dañada.
+    }
+  }, []);
+
+  const changeReaderMode = (mode: "auto" | "desktop" | "mobile") => {
+    setReaderMode(mode);
+    try {
+      const saved = JSON.parse(localStorage.getItem("omega-reader-settings") || "{}");
+      localStorage.setItem("omega-reader-settings", JSON.stringify({ ...saved, readerMode: mode }));
+    } catch {
+      localStorage.setItem("omega-reader-settings", JSON.stringify({ readerMode: mode }));
+    }
+  };
 
   useEffect(() => {
     const t = setInterval(() => setQuoteIndex(i => (i + 1) % BOOK_QUOTES.length), 10000);
@@ -200,6 +220,29 @@ export default function Profile() {
                       <div className="h-full bg-primary" style={{ width: `${Math.min(100, (m.current / m.target) * 100)}%` }} />
                     </div>
                   </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="static-card space-y-5 p-6">
+              <div className="flex items-center gap-3">
+                <MonitorSmartphone className="h-5 w-5 opacity-50" />
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest">Modo del lector</h4>
+                  <p className="mt-1 text-xs text-muted-foreground">Úsalo si tu dispositivo no se detecta correctamente.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2" role="group" aria-label="Modo del lector">
+                {(["auto", "desktop", "mobile"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => changeReaderMode(mode)}
+                    aria-pressed={readerMode === mode}
+                    className={`rounded-xl border px-2 py-3 text-[9px] font-black uppercase tracking-wider transition-colors ${readerMode === mode ? "border-foreground bg-foreground text-background" : "border-border/50 bg-secondary/30 hover:bg-secondary"}`}
+                  >
+                    {mode === "auto" ? "Auto" : mode === "desktop" ? "Computador" : "Teléfono"}
+                  </button>
                 ))}
               </div>
             </section>
