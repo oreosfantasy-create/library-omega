@@ -170,7 +170,9 @@ async function inlineEpubImages(
       element.removeAttribute("data-src");
       element.removeAttribute("data-original");
       element.removeAttribute("data-picture-src");
-      element.setAttribute("loading", "eager");
+      // El iframe solo necesita decodificar la página visible; lazy evita picos de
+      // memoria en teléfonos con EPUB ilustrados.
+      element.setAttribute("loading", "lazy");
     }
   }
 
@@ -450,20 +452,26 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
   useEffect(() => {
     const s = localStorage.getItem("omega-reader-settings");
-    if (s) {
-      const p = JSON.parse(s);
-      setTheme(p.theme || "white");
-      setFontSize(p.fontSize || 1.0);
-      setLineHeight(p.lineHeight || 1.55);
-      setFontFamily(p.fontFamily || "'Inter', sans-serif");
-      // Un modo desktop guardado en computador no debe romper el lector móvil.
-      // En pantallas pequeñas el teléfono siempre usa una sola hoja.
-      setReaderMode(window.innerWidth < 640 ? "mobile" : (p.readerMode || "auto"));
+    try {
+      if (s) {
+        const p = JSON.parse(s);
+        setTheme(p.theme || "white");
+        setFontSize(p.fontSize || 1.0);
+        setLineHeight(p.lineHeight || 1.55);
+        setFontFamily(p.fontFamily || "'Inter', sans-serif");
+        // Un modo desktop guardado en computador no debe romper el lector móvil.
+        setReaderMode(window.innerWidth < 640 ? "mobile" : (p.readerMode || "auto"));
+      }
+      const n = localStorage.getItem("omega-reader-notes");
+      if (n) setNotes(JSON.parse(n));
+      const h = localStorage.getItem("omega-reader-highlights");
+      if (h) setHighlights(JSON.parse(h));
+    } catch {
+      // Restablecer solo preferencias corruptas sin impedir abrir el libro.
+      localStorage.removeItem("omega-reader-settings");
+      localStorage.removeItem("omega-reader-notes");
+      localStorage.removeItem("omega-reader-highlights");
     }
-    const n = localStorage.getItem("omega-reader-notes");
-    if (n) setNotes(JSON.parse(n));
-    const h = localStorage.getItem("omega-reader-highlights");
-    if (h) setHighlights(JSON.parse(h));
     
     const handleResize = () => {
       const viewport = contentRef.current;

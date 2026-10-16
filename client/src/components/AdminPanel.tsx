@@ -49,19 +49,22 @@ export default function AdminPanel() {
     // No se impone un límite de cantidad: se procesan pequeños lotes para
     // permitir cientos de libros sin saturar el navegador ni el almacenamiento.
     const batchSize = 4;
-    for (let start = 0; start < valid.length; start += batchSize) {
-      const batch = valid.slice(start, start + batchSize);
-      await Promise.all(batch.map(async (file) => {
-        try {
-          await addBook(file, defaultCategory === "auto" ? undefined : defaultCategory);
-          toast.success(`"${file.name}" añadido`);
-        } catch {
-          toast.error(`Error con "${file.name}"`);
-        }
-      }));
+    try {
+      for (let start = 0; start < valid.length; start += batchSize) {
+        const batch = valid.slice(start, start + batchSize);
+        await Promise.all(batch.map(async (file) => {
+          try {
+            await addBook(file, defaultCategory === "auto" ? undefined : defaultCategory);
+            toast.success(`"${file.name}" añadido`);
+          } catch {
+            toast.error(`Error con "${file.name}"`);
+          }
+        }));
+      }
+      setPendingFiles([]);
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
-    setPendingFiles([]);
   }, [acceptFile, addBook, defaultCategory]);
 
   const { data: logs, isLoading: loadingLogs, isError: logsError, refetch: refetchLogs } = trpc.access.list.useQuery(

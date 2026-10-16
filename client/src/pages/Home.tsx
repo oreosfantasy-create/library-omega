@@ -58,7 +58,9 @@ export default function Home() {
   const [openBook, setOpenBook] = useState<Book | null>(null);
 
   useEffect(() => {
-    const booksToPrefetch = [...recommendedBooks, ...allBooks.filter(b => (b.lastPage || 0) > 0).slice(0, 3)];
+    // En móvil la precarga de varios libros compite con el lector por memoria y red.
+    if (typeof window !== "undefined" && window.innerWidth < 640) return;
+    const booksToPrefetch = [...recommendedBooks, ...allBooks.filter(b => (b.lastPage || 0) > 0).slice(0, 3)].slice(0, 2);
     booksToPrefetch.forEach(book => {
       // @ts-ignore
       if (typeof window !== 'undefined' && window.OMEGA_PREFETCH) {
