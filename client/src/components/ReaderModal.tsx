@@ -207,7 +207,7 @@ async function parseEpub(dataUrl: string): Promise<{
   if (!containerFile) throw new Error("EPUB sin container.xml válido");
   const containerXml = await containerFile.async("text");
   const containerDoc = new DOMParser().parseFromString(containerXml, "application/xml");
-  const rootfile = containerDoc.querySelector("rootfile");
+  const rootfile = containerDoc.getElementsByTagNameNS("*", "rootfile")[0] || containerDoc.querySelector("rootfile");
   if (!rootfile) throw new Error("EPUB sin container.xml válido");
   const opfPath = rootfile.getAttribute("full-path");
   if (!opfPath) throw new Error("EPUB sin archivo OPF válido");
@@ -218,7 +218,8 @@ async function parseEpub(dataUrl: string): Promise<{
   const opfDoc = new DOMParser().parseFromString(opfXml, "application/xml");
 
   const manifest = new Map<string, { href: string; mediaType: string }>();
-  opfDoc.querySelectorAll("manifest item").forEach((item) => {
+  const manifestItems = Array.from(opfDoc.getElementsByTagNameNS("*", "item"));
+  manifestItems.forEach((item) => {
     const id = item.getAttribute("id");
     const href = item.getAttribute("href");
     if (!id || !href) return;
@@ -226,7 +227,8 @@ async function parseEpub(dataUrl: string): Promise<{
   });
 
   const spineIds: string[] = [];
-  opfDoc.querySelectorAll("spine itemref").forEach((ref) => {
+  const spineItems = Array.from(opfDoc.getElementsByTagNameNS("*", "itemref"));
+  spineItems.forEach((ref) => {
     const idref = ref.getAttribute("idref");
     if (idref) spineIds.push(idref);
   });
@@ -264,6 +266,8 @@ async function parseEpub(dataUrl: string): Promise<{
       title: chapterTitle,
       html: body.innerHTML,
     });
+    // Ceder el hilo entre capítulos evita congelar teléfonos con EPUB grandes.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
   return { title, chapters, coverUrl: null };
 }
@@ -452,7 +456,9 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       setFontSize(p.fontSize || 1.0);
       setLineHeight(p.lineHeight || 1.55);
       setFontFamily(p.fontFamily || "'Inter', sans-serif");
-      setReaderMode(p.readerMode || "auto");
+      // Un modo desktop guardado en computador no debe romper el lector móvil.
+      // En pantallas pequeñas el teléfono siempre usa una sola hoja.
+      setReaderMode(window.innerWidth < 640 ? "mobile" : (p.readerMode || "auto"));
     }
     const n = localStorage.getItem("omega-reader-notes");
     if (n) setNotes(JSON.parse(n));
@@ -463,7 +469,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       const viewport = contentRef.current;
       const width = viewport?.clientWidth || window.innerWidth;
       const height = viewport?.clientHeight || window.innerHeight - 170;
-      const mobile = readerMode === "mobile" || (readerMode === "auto" && width < 640);
+      const mobile = width < 640 || readerMode === "mobile";
       const isSpread = book?.fileType === "epub" && !mobile;
       const pageWidth = isSpread ? Math.floor((width - 42) / 2) : width;
       const horizontalPadding = isSpread ? 128 : 48;
