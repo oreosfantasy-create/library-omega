@@ -14,13 +14,6 @@ interface BookCardProps {
 
 export default function BookCard({ book, index, onOpen, read }: BookCardProps) {
   const isEpub = book.fileType === "epub";
-  const hashStr = book.title.toLowerCase();
-  let h = 0;
-  for (let i = 0; i < hashStr.length; i++) h = ((h << 5) - h + hashStr.charCodeAt(i)) | 0;
-  const shade = Math.abs(h % 5);
-  const bgShades = ["#0a0a0a", "#1a1a1a", "#2a2a2a", "#3a3a3a", "#4a4a4a"];
-  const bg = bgShades[shade];
-
   return (
     <button
       onClick={() => onOpen(book)}
@@ -35,9 +28,9 @@ export default function BookCard({ book, index, onOpen, read }: BookCardProps) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-6 text-center" style={{ backgroundColor: bg }}>
-            <BookMarked className="h-12 w-12 text-white/20" />
-            <h3 className="font-display text-base leading-tight text-white/90">{book.title}</h3>
+          <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-foreground px-6 text-center text-background">
+            <BookMarked className="h-12 w-12 text-background/30" />
+            <h3 className="font-display text-base leading-tight text-background">{book.title}</h3>
           </div>
         )}
         
@@ -49,7 +42,7 @@ export default function BookCard({ book, index, onOpen, read }: BookCardProps) {
         </span>
         
         {read && (
-          <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center bg-foreground text-white rounded-full shadow-lg ring-4 ring-background animate-bubble">
+          <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background shadow-lg ring-4 ring-background animate-bubble">
             <span className="text-[10px] font-black">✓</span>
           </div>
         )}
