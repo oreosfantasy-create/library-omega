@@ -404,6 +404,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const updateProgressMutation = trpc.books.updateProgress.useMutation();
   const [isReady, setIsReady] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingPhase, setLoadingPhase] = useState("Preparando el libro…");
+  const [loadedFrames, setLoadedFrames] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [chapters, setChapters] = useState<EpubChapter[]>([]);
   const [page, setPage] = useState(0);
@@ -498,7 +500,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       window.removeEventListener("resize", handleResize);
       observer?.disconnect();
     };
-  }, [book?.fileType, readerMode]);
+  }, [book?.fileType, readerMode, isReady]);
 
   useEffect(() => {
     localStorage.setItem("omega-reader-settings", JSON.stringify({ theme, fontSize, lineHeight, fontFamily, readerMode }));
@@ -507,6 +509,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setLoadingPhase("Preparando el libro…");
+    setLoadedFrames(0);
     setLoadError(false);
     setIsReady(false);
     setPdfDocument(null);
@@ -528,12 +532,14 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       try {
         if (book.fileType === "epub") {
           const cachedChapters = Array.isArray(cached) ? cached : null;
+          setLoadingPhase(cachedChapters ? "Ajustando el tamaño de lectura…" : "Cargando todos los capítulos…");
           const nextChapters = cachedChapters || (await parseEpub(book.dataUrl)).chapters;
           if (cancelled) return;
           PARSED_BOOKS_CACHE.set(book.id, nextChapters);
           setChapters(nextChapters);
         } else {
           const cachedPdf = cached && !Array.isArray(cached) && cached.document && cached.pageCount ? cached : null;
+          setLoadingPhase(cachedPdf ? "Ajustando la página…" : "Cargando el documento…");
           const loadedPdf = cachedPdf || await loadPdf(book.dataUrl);
           if (cancelled) return;
           PARSED_BOOKS_CACHE.set(book.id, loadedPdf);
@@ -542,6 +548,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
           setPage(Math.min(book.lastPage || 0, Math.max(0, loadedPdf.pageCount - 1)));
         }
         if (!cancelled) {
+          setLoadingPhase("Ajustando el tamaño de lectura…");
           setIsReady(true);
           if (book.fileType !== "pdf") setPage(book.lastPage || 0);
         }
@@ -600,6 +607,12 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const paginated = useMemo(() => paginate(allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily), [allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily]);
   const readerPageCount = book?.fileType === "pdf" ? pdfPageCount : paginated.pageCount;
   const pageStep: 1 | 2 = book?.fileType === "epub" && isMobileReader ? 1 : book?.fileType === "epub" ? 2 : 1;
+  const expectedFrames = book?.fileType === "epub" && !isMobileReader && page + 1 < readerPageCount ? 2 : 1;
+  const framesReady = book?.fileType === "pdf" ? Boolean(pdfPageImage) && loadedFrames >= 1 : loadedFrames >= expectedFrames;
+  const readerIsLoading = loading || (isReady && !pdfNativeFallback && !framesReady);
+  useEffect(() => {
+    setLoadedFrames(0);
+  }, [book?.id, page, isMobileReader]);
   useEffect(() => {
     if (book?.fileType !== "epub" || !readerPageCount) return;
     setPage((current) => {
@@ -685,6 +698,11 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
     setReaderMode(next);
     setPage((currentPage) => next === "mobile" ? currentPage : normalizeReaderPage(currentPage, 2, readerPageCount));
     toast.success(next === "mobile" ? "Modo móvil: una hoja" : "Modo computador: doble página");
+  };
+
+  const handleReaderFrameLoad = () => {
+    setLoadedFrames((count) => count + 1);
+    setLoadingPhase("Libro listo");
   };
 
   const toggleTTS = () => {
@@ -864,10 +882,11 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       <main className="relative flex flex-1 flex-col overflow-hidden pb-20 sm:flex-row sm:pb-0">
         {/* Iframe Viewport */}
         <div className="flex-1 relative">
-          {loading && (
+          {readerIsLoading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 z-20">
               <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Abriendo Archivos Omega...</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">{loadingPhase}</p>
+              <p className="text-[9px] uppercase tracking-widest opacity-35">{isReady ? `Hoja ${Math.min(loadedFrames, expectedFrames)} de ${expectedFrames}` : "No cierres esta ventana"}</p>
             </div>
           )}
           
@@ -884,13 +903,15 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
               <div ref={contentRef} className="reader-spread flex h-full w-full items-stretch justify-center gap-0 overflow-hidden bg-secondary/30 p-1.5 sm:gap-3 sm:p-6">
               <iframe
                 srcDoc={srcDoc}
+                onLoad={handleReaderFrameLoad}
                 className="reader-page h-full min-w-0 flex-1 border-none bg-background"
                 title="Reader Viewport"
               />
-              {page + 1 < readerPageCount && (
+              {!isMobileReader && page + 1 < readerPageCount && (
                 <iframe
                   srcDoc={nextSrcDoc}
-                  className={`reader-page h-full min-w-0 flex-1 border-none bg-background ${isMobileReader ? "hidden" : "block"}`}
+                  onLoad={handleReaderFrameLoad}
+                  className="reader-page h-full min-w-0 flex-1 border-none bg-background"
                   title={`Página ${page + 2}`}
                 />
               )}
@@ -907,6 +928,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
               {pdfPageImage && (
                 <iframe
                   srcDoc={srcDoc}
+                  onLoad={handleReaderFrameLoad}
                   className="h-full w-full border-none"
                   title={`Página PDF ${page + 1}`}
                 />
