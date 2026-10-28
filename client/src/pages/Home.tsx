@@ -84,7 +84,7 @@ export default function Home() {
   if (!isVerified && !isAuthenticated) return <CaptchaGate onVerify={handleVerify} />;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/10">
+    <div className="omega-home min-h-screen flex flex-col bg-background selection:bg-primary/10">
       <Navbar />
       
       {levelUpJustHappened && <LevelUpOverlay onDismiss={resetLevelUpFlag} />}
@@ -105,9 +105,9 @@ export default function Home() {
               {/* Catálogo con Filtros Elite */}
               <section className="space-y-8">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <h2 className="font-display text-4xl tracking-tight">Explorar Biblioteca</h2>
-                    <p className="text-xs font-black uppercase tracking-[0.3em] opacity-40">{filteredCatalog.length} Volúmenes Disponibles</p>
+                    <div className="flex items-center gap-3"><span className="h-px w-8 bg-foreground/30" /><p className="text-xs font-black uppercase tracking-[0.3em] opacity-40">{filteredCatalog.length} Volúmenes Disponibles</p></div>
                   </div>
                   
                   <div className="flex flex-wrap items-center gap-2 p-1.5 bg-secondary/50 rounded-2xl border border-border/50">
