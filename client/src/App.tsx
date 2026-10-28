@@ -7,7 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LibraryProvider } from "./lib/libraryStore";
 import Explore from "./pages/Explore";
 import Home from "./pages/Home";
-import Profile from "./pages/Profile";
+import Profile from "@/pages/Profile";
+import Recommender from "@/pages/Recommender";
 
 function Router() {
   // SPA sin dependencias de la URL: Home siempre visible.
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/">{() => <Home />}</Route>
       <Route path="/explorar">{() => <Explore />}</Route>
       <Route path="/perfil">{() => <Profile />}</Route>
+      <Route path="/recomendador">{() => <Recommender />}</Route>
       <Route>{() => <NotFound />}</Route>
     </Switch>
   );

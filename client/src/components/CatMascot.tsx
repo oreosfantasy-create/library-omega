@@ -3,6 +3,7 @@
  * Diseño premium con sombras profundas y animaciones suaves.
  */
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { levelTitle, levelMessage, useLibrary } from "@/lib/libraryStore";
 import BrandMark from "@/components/BrandMark";
 import { Flame, RotateCcw, Zap, Sparkles } from "lucide-react";
@@ -10,6 +11,7 @@ import { Flame, RotateCcw, Zap, Sparkles } from "lucide-react";
 
 export default function CatMascot() {
   const { level, xp, streak, xpProgressInfo, resetProgress } = useLibrary();
+  const [, navigate] = useLocation();
   const [confirmReset, setConfirmReset] = useState(false);
   const title = levelTitle(level);
   const message = levelMessage(level);
@@ -28,9 +30,10 @@ export default function CatMascot() {
       </div>
 
       <div className="mb-7 flex justify-center">
-        <div className="relative h-40 w-40 sm:h-48 sm:w-48">
+        <button type="button" onClick={() => navigate("/recomendador")} className="group relative h-40 w-40 rounded-full outline-none transition-transform duration-300 hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 sm:h-48 sm:w-48" aria-label="Abrir recomendador de libros con Gato Omega" title="Habla con Gato Omega para recibir recomendaciones">
           <BrandMark size="lg" label="Logo Library Omega, gatito con símbolo Omega" />
-        </div>
+          <span className="absolute bottom-1 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100" aria-hidden="true"><Sparkles className="h-4 w-4" /></span>
+        </button>
       </div>
 
       <div className="space-y-1">
@@ -38,6 +41,7 @@ export default function CatMascot() {
         <p className="text-[10px] font-medium text-muted-foreground max-w-[200px] mx-auto leading-relaxed opacity-80">
           {message}
         </p>
+        <p className="mt-2 text-[9px] font-black uppercase tracking-[0.16em] text-muted-foreground/70">Toca el gato para pedir una recomendación</p>
       </div>
 
       <div className="mt-9 space-y-7">

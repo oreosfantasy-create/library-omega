@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 import { storageGetSignedUrl, storagePut } from "./storage";
 
@@ -19,6 +20,14 @@ async function extractCoverBuffer(buffer: Buffer, type: "epub" | "pdf"): Promise
 }
 
 const ADMIN_PASSWORD = "omega2024";
+
+function llmText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content.map((part) => typeof part === "object" && part && "text" in part ? String((part as { text: unknown }).text) : "").join("\n");
+  }
+  return "";
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -44,6 +53,64 @@ export const appRouter = router({
       const rows = await db.listAccessLogs();
       return rows.map(r => ({ id: r.id, email: r.email, timestamp: r.timestamp.getTime() }));
     }),
+  }),
+
+  recommendations: router({
+    chat: publicProcedure
+      .input(z.object({
+        message: z.string().trim().min(2).max(1200),
+        history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(1200) })).max(8).default([]),
+      }))
+      .mutation(async ({ input }) => {
+        const availableBooks = await db.listBooks();
+        const catalog = availableBooks.map((book) => ({
+          id: book.id,
+          title: book.title,
+          category: book.category,
+          age: book.age ?? "Universal",
+        }));
+        if (catalog.length === 0) {
+          return { answer: "Todavía no hay libros disponibles para recomendar. Cuando agregues algunos, podré ayudarte a elegir.", recommendations: [] };
+        }
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "Eres Gato Omega, un bibliotecario amable que recomienda únicamente libros del catálogo recibido. No inventes títulos, autores ni IDs. Responde en español latinoamericano. Si la petición es ambigua, haz una pregunta breve. Si hay coincidencias, explica en una frase por qué encajan y devuelve sus IDs exactos." },
+            ...input.history.map((item) => ({ role: item.role as "user" | "assistant", content: item.content })),
+            { role: "user", content: `Catálogo disponible (usa solo estos IDs):\n${JSON.stringify(catalog)}\n\nPetición del lector:\n${input.message}` },
+          ],
+          maxTokens: 700,
+          responseFormat: {
+            type: "json_schema",
+            json_schema: {
+              name: "book_recommendations",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  answer: { type: "string" },
+                  recommendations: { type: "array", items: { type: "object", properties: { id: { type: "string" }, reason: { type: "string" } }, required: ["id", "reason"], additionalProperties: false } },
+                },
+                required: ["answer", "recommendations"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const raw = llmText(response.choices?.[0]?.message?.content);
+        try {
+          const parsed = JSON.parse(raw) as { answer?: string; recommendations?: Array<{ id?: string; reason?: string }> };
+          const allowed = new Set(catalog.map((book) => book.id));
+          const recommendations = (parsed.recommendations || [])
+            .filter((item) => item.id && allowed.has(item.id))
+            .slice(0, 5)
+            .map((item) => ({ id: item.id as string, reason: item.reason || "Podría encajar con lo que buscas." }));
+          return { answer: parsed.answer || "Encontré algunas opciones para ti.", recommendations };
+        } catch {
+          return { answer: raw || "No pude organizar una recomendación. Prueba describiendo el tipo de historia que buscas.", recommendations: [] };
+        }
+      }),
   }),
 
   books: router({
