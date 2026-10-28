@@ -13,13 +13,14 @@ import CaptchaGate from "@/components/CaptchaGate";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
+import { readVerifiedFlag, writeVerifiedFlag } from "@/lib/safeStorage";
 import { Sparkles, BookMarked, Filter, MessageSquare, Star, Send, BookOpen, Clock, Award, Flame, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [isVerified, setIsVerified] = useState(() => {
     if (typeof window === "undefined") return false;
-    return sessionStorage.getItem("omega_verified") === "true";
+    return readVerifiedFlag();
   });
 
   const logAccessMutation = trpc.access.log.useMutation();
@@ -28,14 +29,14 @@ export default function Home() {
   useEffect(() => {
     if (isAuthenticated && user) {
       setIsVerified(true);
-      sessionStorage.setItem("omega_verified", "true");
+      writeVerifiedFlag();
       logAccessMutation.mutate({ email: user.email || "google-user" });
     }
   }, [isAuthenticated, user]);
 
   const handleVerify = (email: string) => {
     setIsVerified(true);
-    sessionStorage.setItem("omega_verified", "true");
+    writeVerifiedFlag();
     logAccessMutation.mutate({ email });
   };
 
@@ -79,7 +80,8 @@ export default function Home() {
       (filterAge === "Todas" || b.age === filterAge),
   );
 
-  if (!isVerified) return <CaptchaGate onVerify={handleVerify} />;
+  // Una sesión autenticada debe poder entrar aunque el navegador bloquee el almacenamiento.
+  if (!isVerified && !isAuthenticated) return <CaptchaGate onVerify={handleVerify} />;
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/10">

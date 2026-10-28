@@ -3,20 +3,21 @@ import { ShieldCheck, RefreshCw, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
+import { readStorage, removeStorage, writeStorage } from "@/lib/safeStorage";
 
 interface CaptchaGateProps {
   onVerify: (email: string) => void;
 }
 
 export default function CaptchaGate({ onVerify }: CaptchaGateProps) {
-  const { isAuthenticated, loading } = useAuth();
+  const { loading } = useAuth();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [lockUntil, setLockUntil] = useState<number | null>(() => {
-    const saved = localStorage.getItem("omega_lock_until");
+    const saved = readStorage("omega_lock_until", "local");
     if (saved) {
       const until = parseInt(saved, 10);
       return until > Date.now() ? until : null;
@@ -32,7 +33,7 @@ export default function CaptchaGate({ onVerify }: CaptchaGateProps) {
       const remaining = Math.ceil((lockUntil - Date.now()) / 1000);
       if (remaining <= 0) {
         setLockUntil(null);
-        localStorage.removeItem("omega_lock_until");
+        removeStorage("omega_lock_until", "local");
         setAttempts(0);
         clearInterval(interval);
       } else {
@@ -74,7 +75,7 @@ export default function CaptchaGate({ onVerify }: CaptchaGateProps) {
       if (newAttempts >= 3) {
         const until = Date.now() + 5 * 60 * 1000;
         setLockUntil(until);
-        localStorage.setItem("omega_lock_until", until.toString());
+        writeStorage("omega_lock_until", until.toString(), "local");
         setError("Demasiados intentos. Bloqueado por 5 minutos.");
       } else {
         setError(`Código incorrecto. Intentos: ${newAttempts}/3`);
