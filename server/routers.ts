@@ -69,15 +69,11 @@ export const appRouter = router({
           category: book.category,
           age: book.age ?? "Universal",
         }));
-        if (catalog.length === 0) {
-          return { answer: "Todavía no hay libros disponibles para recomendar. Cuando agregues algunos, podré ayudarte a elegir.", recommendations: [] };
-        }
-
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: "Eres Gato Omega, un bibliotecario amable que recomienda únicamente libros del catálogo recibido. No inventes títulos, autores ni IDs. Responde en español latinoamericano. Si la petición es ambigua, haz una pregunta breve. Si hay coincidencias, explica en una frase por qué encajan y devuelve sus IDs exactos." },
+            { role: "system", content: "Eres Gato Omega, un bibliotecario amable. Responde en español latinoamericano. Primero busca coincidencias en el catálogo disponible y devuelve sus IDs exactos en recommendations. También puedes proponer hasta 3 libros externos en externalSuggestions cuando ayuden al lector; márcalos como no disponibles y nunca les inventes un ID. No afirmes que un libro está en la biblioteca si no aparece en el catálogo. Si la petición es ambigua, haz una pregunta breve." },
             ...input.history.map((item) => ({ role: item.role as "user" | "assistant", content: item.content })),
-            { role: "user", content: `Catálogo disponible (usa solo estos IDs):\n${JSON.stringify(catalog)}\n\nPetición del lector:\n${input.message}` },
+            { role: "user", content: `Catálogo disponible ahora (se actualiza cada vez que se consulta):\n${JSON.stringify(catalog)}\n\nPetición del lector:\n${input.message}` },
           ],
           maxTokens: 700,
           responseFormat: {
@@ -90,8 +86,9 @@ export const appRouter = router({
                 properties: {
                   answer: { type: "string" },
                   recommendations: { type: "array", items: { type: "object", properties: { id: { type: "string" }, reason: { type: "string" } }, required: ["id", "reason"], additionalProperties: false } },
+                  externalSuggestions: { type: "array", items: { type: "object", properties: { title: { type: "string" }, author: { type: "string" }, reason: { type: "string" } }, required: ["title", "author", "reason"], additionalProperties: false } },
                 },
-                required: ["answer", "recommendations"],
+                required: ["answer", "recommendations", "externalSuggestions"],
                 additionalProperties: false,
               },
             },
@@ -100,15 +97,16 @@ export const appRouter = router({
 
         const raw = llmText(response.choices?.[0]?.message?.content);
         try {
-          const parsed = JSON.parse(raw) as { answer?: string; recommendations?: Array<{ id?: string; reason?: string }> };
+          const parsed = JSON.parse(raw) as { answer?: string; recommendations?: Array<{ id?: string; reason?: string }>; externalSuggestions?: Array<{ title?: string; author?: string; reason?: string }> };
           const allowed = new Set(catalog.map((book) => book.id));
           const recommendations = (parsed.recommendations || [])
             .filter((item) => item.id && allowed.has(item.id))
             .slice(0, 5)
             .map((item) => ({ id: item.id as string, reason: item.reason || "Podría encajar con lo que buscas." }));
-          return { answer: parsed.answer || "Encontré algunas opciones para ti.", recommendations };
+          const externalSuggestions = (parsed.externalSuggestions || []).filter((item) => item.title && item.author && item.reason).slice(0, 3).map((item) => ({ title: item.title as string, author: item.author as string, reason: item.reason as string }));
+          return { answer: parsed.answer || "Encontré algunas opciones para ti.", recommendations, externalSuggestions };
         } catch {
-          return { answer: raw || "No pude organizar una recomendación. Prueba describiendo el tipo de historia que buscas.", recommendations: [] };
+          return { answer: raw || "No pude organizar una recomendación. Prueba describiendo el tipo de historia que buscas.", recommendations: [], externalSuggestions: [] };
         }
       }),
   }),

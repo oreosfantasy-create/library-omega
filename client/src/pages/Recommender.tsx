@@ -12,11 +12,18 @@ interface Recommendation {
   reason: string;
 }
 
+interface ExternalSuggestion {
+  title: string;
+  author: string;
+  reason: string;
+}
+
 export default function Recommender() {
   const [, navigate] = useLocation();
   const { allBooks } = useLibrary();
   const [openBook, setOpenBook] = useState<Book | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [externalSuggestions, setExternalSuggestions] = useState<ExternalSuggestion[]>([]);
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Soy Gato Omega. Cuéntame qué te gustaría leer y buscaré coincidencias entre los libros disponibles en tu biblioteca." },
   ]);
@@ -24,6 +31,7 @@ export default function Recommender() {
   const chatMutation = trpc.recommendations.chat.useMutation({
     onSuccess: (response) => {
       setRecommendations(response.recommendations);
+      setExternalSuggestions(response.externalSuggestions);
       setMessages((current) => [...current, { role: "assistant", content: response.answer }]);
     },
     onError: () => {
@@ -59,7 +67,7 @@ export default function Recommender() {
                   <h1 className="font-display text-4xl tracking-tight sm:text-5xl">¿Qué quieres leer?</h1>
                 </div>
               </div>
-              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Descríbeme una historia, un estado de ánimo o un tema. Solo recomendaré títulos que ya estén disponibles en tu biblioteca.</p>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Descríbeme una historia, un estado de ánimo o un tema. Revisaré tu biblioteca actual y también podré sugerir títulos externos para ampliar tus opciones.</p>
             </div>
             <div className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-4 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               <LibraryBig className="h-4 w-4" /> {allBooks.length} títulos disponibles
@@ -82,7 +90,7 @@ export default function Recommender() {
               <div className="static-card p-5">
                 <div className="mb-4 flex items-center gap-2"><BookOpen className="h-4 w-4 opacity-50" /><h2 className="text-[10px] font-black uppercase tracking-widest">Coincidencias</h2></div>
                 {recommendationBooks.length === 0 ? (
-                  <p className="text-sm leading-6 text-muted-foreground">Tus recomendaciones aparecerán aquí cuando le cuentes a Gato Omega qué estás buscando.</p>
+                  <p className="text-sm leading-6 text-muted-foreground">Las coincidencias disponibles aparecerán aquí. El catálogo se actualiza automáticamente cada vez que agregas libros.</p>
                 ) : (
                   <div className="space-y-3">
                     {recommendationBooks.map(({ book, reason }) => (
@@ -101,6 +109,16 @@ export default function Recommender() {
                   </div>
                 )}
               </div>
+              {externalSuggestions.length > 0 && <div className="static-card p-5">
+                <div className="mb-4 flex items-center gap-2"><Sparkles className="h-4 w-4 opacity-50" /><h2 className="text-[10px] font-black uppercase tracking-widest">Para explorar fuera</h2></div>
+                <div className="space-y-3">
+                  {externalSuggestions.map((item) => <div key={`${item.title}-${item.author}`} className="rounded-2xl border border-dashed border-border/70 bg-secondary/20 p-3">
+                    <h3 className="font-display text-base leading-tight">{item.title}</h3>
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.author} · No está en tu biblioteca</p>
+                    <p className="mt-2 text-[11px] leading-4 text-muted-foreground">{item.reason}</p>
+                  </div>)}
+                </div>
+              </div>}
               <div className="rounded-[1.5rem] bg-foreground p-5 text-background shadow-xl">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-background/50">Consejo</p>
                 <p className="mt-3 font-display text-xl leading-tight">Mientras más me cuentes, mejor podré afinar la selección.</p>

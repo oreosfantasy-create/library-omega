@@ -37,6 +37,21 @@ export type BookCategory =
   | "Aventura"
   | "Misterio"
   | "Terror"
+  | "Romance"
+  | "Fantasía"
+  | "Ciencia ficción"
+  | "Suspenso"
+  | "Drama"
+  | "Comedia"
+  | "Autoayuda"
+  | "Psicología"
+  | "Educación"
+  | "Negocios"
+  | "Salud"
+  | "Viajes"
+  | "Cocina"
+  | "Teatro"
+  | "Religión"
   | "Otros";
 
 export const BOOK_CATEGORIES: BookCategory[] = [
@@ -53,6 +68,21 @@ export const BOOK_CATEGORIES: BookCategory[] = [
   "Aventura",
   "Misterio",
   "Terror",
+  "Romance",
+  "Fantasía",
+  "Ciencia ficción",
+  "Suspenso",
+  "Drama",
+  "Comedia",
+  "Autoayuda",
+  "Psicología",
+  "Educación",
+  "Negocios",
+  "Salud",
+  "Viajes",
+  "Cocina",
+  "Teatro",
+  "Religión",
   "Otros",
 ];
 
@@ -81,6 +111,21 @@ export function classifyBook(title: string): {
   // Detección de género por palabras clave (orden importa).
   const genreHints: Array<[RegExp, BookCategory]> = [
     [/\bpoema|poesia|poesias|versos|poetas|haikus|antoologia\b/, "Poesía"],
+    [/\bromance|romantica|romantico|amor|pareja|corazon|novia|novio\b/, "Romance"],
+    [/\bfantasia|magia|mago|hechizo|dragon|dragones|elfo|elfos|reino|brujas?\b/, "Fantasía"],
+    [/\bciencia ficcion|ciencia-ficcion|distopia|espacio|galaxia|extraterrestre|cyberpunk\b/, "Ciencia ficción"],
+    [/\bsuspenso|thriller|tension|conspiracion|espia|espionaje\b/, "Suspenso"],
+    [/\bdrama|tragedia|melodrama|conflicto familiar\b/, "Drama"],
+    [/\bcomedia|humor|humoristico|satira|satirico\b/, "Comedia"],
+    [/\bautoayuda|habitos|motivacion|motivacional|superacion|desarrollo personal\b/, "Autoayuda"],
+    [/\bpsicologia|psicologico|emociones|mente|terapia|psicoanalisis\b/, "Psicología"],
+    [/\beducacion|pedagogia|didactica|aprendizaje|estudiar|manual|guia\b/, "Educación"],
+    [/\bnegocios|empresa|emprendimiento|liderazgo|marketing|ventas|finanzas|inversion\b/, "Negocios"],
+    [/\bsalud|medicina|nutricion|ejercicio|fitness|bienestar|anatomia\b/, "Salud"],
+    [/\bviaje|viajes|turismo|destinos|mochilero|geografia\b/, "Viajes"],
+    [/\bcocina|recetas|gastronomia|cocinar|reposteria\b/, "Cocina"],
+    [/\bteatro|obra teatral|dramaturgia|escena\b/, "Teatro"],
+    [/\breligion|biblia|espiritualidad|oracion|cristian|islam|budismo\b/, "Religión"],
     [/\bcuento|cuentos|fabula|fabulas|niños|ninos|para ninos|infantil|magica\b/, "Ficción"],
     [/\bciencia|fisica|quimica|biologia|matematicas|matematica|astronomia|universo|naturaleza|cuerpo humano\b/, "Ciencia"],
     [/\bguerra|civilizacion|revolucion|imperio|romanos|antigua|prehistoria|egipto|edades\b/, "Historia"],
@@ -694,11 +739,12 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
           }
         }
         if (cancelled) return;
+        const inferred = classifyBook(row.title);
         loaded.push({
           id: row.id,
           title: row.title,
-          category: (row.category as BookCategory) || "Otros",
-          age: (row.age as AgeRange) || ("Universal" as AgeRange),
+          category: row.category && row.category !== "Otros" ? (row.category as BookCategory) : inferred.category,
+          age: row.age && row.age !== "Universal" ? (row.age as AgeRange) : inferred.age,
           fileName: row.fileName,
           fileType: row.fileType,
           dataUrl,
