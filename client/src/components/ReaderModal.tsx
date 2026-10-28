@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import BrandMark from "@/components/BrandMark";
+import { isMobileReaderMode, normalizeReaderPage, type ReaderMode } from "@/lib/readerLayout";
 
 const PARSED_BOOKS_CACHE = new Map<string, any>();
 if (typeof window !== 'undefined') {
@@ -424,8 +425,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const [fontFamily, setFontFamily] = useState("'Inter', sans-serif");
   const [showSettings, setShowSettings] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(true);
-  const [readerMode, setReaderMode] = useState<"auto" | "desktop" | "mobile">("auto");
-  const [isMobileReader, setIsMobileReader] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
+  const [readerMode, setReaderMode] = useState<ReaderMode>("auto");
+  const [isMobileReader, setIsMobileReader] = useState(() => typeof window !== "undefined" && isMobileReaderMode("auto", window.innerWidth));
 
   const [notes, setNotes] = useState<Record<string, string[]>>({});
   const [showNotes, setShowNotes] = useState(false);
@@ -459,8 +460,8 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
         setFontSize(p.fontSize || 1.0);
         setLineHeight(p.lineHeight || 1.55);
         setFontFamily(p.fontFamily || "'Inter', sans-serif");
-        // Un modo desktop guardado en computador no debe romper el lector móvil.
-        setReaderMode(window.innerWidth < 640 ? "mobile" : (p.readerMode || "auto"));
+        const savedMode: ReaderMode = ["auto", "desktop", "mobile"].includes(p.readerMode) ? p.readerMode : "auto";
+        setReaderMode(savedMode);
       }
       const n = localStorage.getItem("omega-reader-notes");
       if (n) setNotes(JSON.parse(n));
@@ -477,13 +478,14 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       const viewport = contentRef.current;
       const width = viewport?.clientWidth || window.innerWidth;
       const height = viewport?.clientHeight || window.innerHeight - 170;
-      const mobile = width < 640 || readerMode === "mobile";
+      // El modo manual tiene prioridad; solo Auto usa el ancho del dispositivo.
+      const mobile = isMobileReaderMode(readerMode, window.innerWidth);
       const isSpread = book?.fileType === "epub" && !mobile;
       const pageWidth = isSpread ? Math.floor((width - 42) / 2) : width;
       const horizontalPadding = isSpread ? 128 : 48;
       // Reservar una franja inferior limpia para que ningún párrafo termine contra el borde.
       setPageHeight(Math.max(240, height - (isSpread ? 128 : 120)));
-      setContentWidth(Math.max(240, pageWidth - horizontalPadding));
+      setContentWidth(Math.max(120, pageWidth - horizontalPadding));
       setIsMobileReader(mobile);
     };
     window.addEventListener("resize", handleResize);
@@ -597,12 +599,11 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
   const paginated = useMemo(() => paginate(allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily), [allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily]);
   const readerPageCount = book?.fileType === "pdf" ? pdfPageCount : paginated.pageCount;
-  const pageStep = book?.fileType === "epub" && isMobileReader ? 1 : book?.fileType === "epub" ? 2 : 1;
+  const pageStep: 1 | 2 = book?.fileType === "epub" && isMobileReader ? 1 : book?.fileType === "epub" ? 2 : 1;
   useEffect(() => {
     if (book?.fileType !== "epub" || !readerPageCount) return;
     setPage((current) => {
-      const normalized = pageStep === 2 ? current - (current % 2) : current;
-      return Math.min(Math.max(0, normalized), readerPageCount - 1);
+      return normalizeReaderPage(current, pageStep, readerPageCount);
     });
   }, [book?.fileType, readerPageCount, pageStep]);
   const currentPageChunks = useMemo(() => {
@@ -682,8 +683,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const toggleReaderMode = () => {
     const next = readerMode === "desktop" ? "mobile" : "desktop";
     setReaderMode(next);
-    setIsMobileReader(next === "mobile");
-    setPage((currentPage) => next === "mobile" ? currentPage : currentPage - (currentPage % 2));
+    setPage((currentPage) => next === "mobile" ? currentPage : normalizeReaderPage(currentPage, 2, readerPageCount));
     toast.success(next === "mobile" ? "Modo móvil: una hoja" : "Modo computador: doble página");
   };
 
@@ -890,7 +890,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
               {page + 1 < readerPageCount && (
                 <iframe
                   srcDoc={nextSrcDoc}
-                  className="reader-page hidden h-full min-w-0 flex-1 border-none bg-background sm:block"
+                  className={`reader-page h-full min-w-0 flex-1 border-none bg-background ${isMobileReader ? "hidden" : "block"}`}
                   title={`Página ${page + 2}`}
                 />
               )}
@@ -924,7 +924,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
         {/* Barra rápida: disponible incluso al abrir en modo enfoque. */}
         <div className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-2 rounded-2xl border border-border/30 bg-background/90 p-2 shadow-xl backdrop-blur-xl sm:right-5" aria-label="Herramientas del lector">
-          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador" : "Cambiar a modo móvil"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="hidden h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90 sm:flex">
+          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador: dos hojas" : "Cambiar a modo móvil: una hoja"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90">
             <MonitorSmartphone className="h-5 w-5" />
           </button>
           <button onClick={() => setShowSettings(value => !value)} aria-label="Configuración de color, fuente y tamaño" aria-pressed={showSettings} className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-foreground hover:text-background active:scale-90 ${showSettings ? "bg-foreground text-background" : "bg-secondary/60"}`}>
