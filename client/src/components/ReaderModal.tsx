@@ -275,9 +275,29 @@ async function parseEpub(dataUrl: string): Promise<{
   return { title, chapters, coverUrl: null };
 }
 
-function flattenBody(html: string): NodeChunk[] {
+function flattenBody(html: string, maxTextLength = 900): NodeChunk[] {
   const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
   const chunks: NodeChunk[] = [];
+  const collectInline = (root: Element, block: string | null, target: NodeChunk[]) => {
+    for (const node of Array.from(root.childNodes)) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = cleanReaderText(node.textContent || "");
+        if (text) target.push({ kind: "text", value: text, block });
+        continue;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) continue;
+      const element = node as Element;
+      const tag = element.tagName.toLowerCase();
+      if (tag === "img") {
+        const src = element.getAttribute("src");
+        if (src) target.push({ kind: "img", value: src, altText: element.getAttribute("alt") || undefined });
+      } else if (tag === "br") {
+        target.push({ kind: "text", value: "\n", block: "br" });
+      } else {
+        collectInline(element, block, target);
+      }
+    }
+  };
   const walk = (root: Element) => {
     for (const node of Array.from(root.childNodes)) {
       if (node.nodeType === Node.TEXT_NODE) {
@@ -292,10 +312,23 @@ function flattenBody(html: string): NodeChunk[] {
         } else if (tag === "br") {
           chunks.push({ kind: "text", value: "\n", block: "br" });
         } else if (["h1", "h2", "h3"].includes(tag)) {
-          chunks.push({ kind: "text", value: cleanReaderText(el.textContent || ""), block: tag });
+          if (!el.querySelector("img")) {
+            const text = cleanReaderText(el.textContent || "");
+            if (text) chunks.push({ kind: "text", value: text, block: tag });
+          } else {
+            const blockChunks: NodeChunk[] = [];
+            collectInline(el, tag, blockChunks);
+            chunks.push(...blockChunks);
+          }
         } else if (["p", "li", "td", "blockquote"].includes(tag)) {
-          const text = cleanReaderText(el.textContent || "");
-          if (text) chunks.push({ kind: "text", value: text, block: tag });
+          if (!el.querySelector("img")) {
+            const text = cleanReaderText(el.textContent || "");
+            if (text) chunks.push({ kind: "text", value: text, block: tag });
+          } else {
+            const blockChunks: NodeChunk[] = [];
+            collectInline(el, tag, blockChunks);
+            chunks.push(...blockChunks);
+          }
         } else {
           walk(el as Element);
         }
@@ -305,13 +338,13 @@ function flattenBody(html: string): NodeChunk[] {
   walk(doc.firstElementChild || doc.body);
   const safeChunks: NodeChunk[] = [];
   for (const chunk of chunks) {
-    if (chunk.kind !== "text" || chunk.value.length <= 900) {
+    if (chunk.kind !== "text" || chunk.value.length <= maxTextLength) {
       safeChunks.push(chunk);
       continue;
     }
     let remaining = chunk.value.trim();
     while (remaining.length > 0) {
-      const limit = Math.min(900, remaining.length);
+      const limit = Math.min(maxTextLength, remaining.length);
       let cut = remaining.lastIndexOf(" ", limit);
       if (cut < 300) cut = limit;
       const part = remaining.slice(0, cut).trim();
@@ -429,6 +462,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const [isFocusMode, setIsFocusMode] = useState(true);
   const [readerMode, setReaderMode] = useState<ReaderMode>("auto");
   const [isMobileReader, setIsMobileReader] = useState(() => typeof window !== "undefined" && isMobileReaderMode("auto", window.innerWidth));
+  const [isDesktopViewport, setIsDesktopViewport] = useState(() => typeof window !== "undefined" && window.innerWidth >= 640);
 
   const [notes, setNotes] = useState<Record<string, string[]>>({});
   const [showNotes, setShowNotes] = useState(false);
@@ -489,6 +523,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       setPageHeight(Math.max(240, height - (isSpread ? 128 : 120)));
       setContentWidth(Math.max(120, pageWidth - horizontalPadding));
       setIsMobileReader(mobile);
+      setIsDesktopViewport(window.innerWidth >= 640);
     };
     window.addEventListener("resize", handleResize);
     const observer = typeof ResizeObserver !== "undefined" && contentRef.current
@@ -601,7 +636,12 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
   const allChunks = useMemo((): NodeChunk[] => {
     if (!isReady) return [];
     if (book?.fileType === "pdf") return pdfPageImage ? [pdfPageImage] : [];
-    return chapters.flatMap(ch => flattenBody(ch.html));
+    return chapters.flatMap((chapter, index) => {
+      const content = flattenBody(chapter.html);
+      const hasHeading = content.some((chunk) => chunk.kind === "text" && ["h1", "h2", "h3"].includes(chunk.block || ""));
+      if (index === 0 || hasHeading || !chapter.title) return content;
+      return [{ kind: "text", value: chapter.title, block: "h2" } satisfies NodeChunk, ...content];
+    });
   }, [isReady, chapters, book?.fileType, pdfPageImage]);
 
   const paginated = useMemo(() => paginate(allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily), [allChunks, pageHeight, contentWidth, fontSize, lineHeight, fontFamily]);
@@ -946,7 +986,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
 
         {/* Barra rápida: disponible incluso al abrir en modo enfoque. */}
         <div className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-2 rounded-2xl border border-border/30 bg-background/90 p-2 shadow-xl backdrop-blur-xl sm:right-5" aria-label="Herramientas del lector">
-          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador: dos hojas" : "Cambiar a modo móvil: una hoja"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90">
+          <button onClick={toggleReaderMode} aria-label={isMobileReader ? "Cambiar a modo computador: dos hojas" : "Cambiar a modo móvil: una hoja"} title={isMobileReader ? "Modo móvil · cambiar a computador" : "Modo computador · cambiar a móvil"} className="hidden h-11 w-11 items-center justify-center rounded-xl bg-secondary/60 transition-all hover:bg-foreground hover:text-background active:scale-90 sm:flex">
             <MonitorSmartphone className="h-5 w-5" />
           </button>
           <button onClick={() => setShowSettings(value => !value)} aria-label="Configuración de color, fuente y tamaño" aria-pressed={showSettings} className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-foreground hover:text-background active:scale-90 ${showSettings ? "bg-foreground text-background" : "bg-secondary/60"}`}>
@@ -1051,7 +1091,7 @@ export default function ReaderModal({ book, onClose }: { book: Book | null; onCl
       </main>
 
       {/* Floating Controls Elite (Simplificado para móviles) */}
-      {!(book.fileType === "pdf" && pdfNativeFallback) && (
+      {isDesktopViewport && !(book.fileType === "pdf" && pdfNativeFallback) && (
         <div className="fixed bottom-[max(0.5rem,env(safe-area-inset-bottom))] sm:bottom-8 left-1/2 -translate-x-1/2 z-[70] flex max-w-[calc(100vw-1rem)] flex-nowrap items-center justify-center gap-1 sm:gap-8 px-2 sm:px-6 py-1.5 sm:py-4 bg-background/95 backdrop-blur-2xl rounded-full sm:rounded-3xl border border-border/50 shadow-2xl premium-shadow">
           {book.fileType === "pdf" && (
             <div className="hidden items-center gap-1 rounded-xl bg-secondary/60 p-1 sm:flex">
