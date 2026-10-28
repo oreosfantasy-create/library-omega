@@ -1,10 +1,6 @@
-export type ReaderMode = "auto" | "desktop" | "mobile";
-
 export const READER_MOBILE_BREAKPOINT = 640;
 
-export function isMobileReaderMode(mode: ReaderMode, viewportWidth: number): boolean {
-  if (mode === "mobile") return true;
-  if (mode === "desktop") return false;
+export function isMobileReaderMode(viewportWidth: number): boolean {
   return viewportWidth < READER_MOBILE_BREAKPOINT;
 }
 
