@@ -14,6 +14,7 @@ import React, {
   useCallback,
 } from "react";
 import { toast } from "sonner";
+import { readStorage, removeStorage, writeStorage } from "@/lib/safeStorage";
 import { get as idbGet, set as idbSet, del as idbDel, keys as idbKeys } from "idb-keyval";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -235,6 +236,23 @@ const IDB_FILE_PREFIX = "file-"; // prefijo para los blobs en IndexedDB
 /** Lista de IDs de libros cuyos archivos viven en IndexedDB */
 const IDB_STORE_IDS_KEY = "biblioquest-fileids-v2";
 
+/** Evita que un navegador con IndexedDB bloqueado deje la aplicación esperando. */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(() => resolve(fallback), timeoutMs);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        window.clearTimeout(timer);
+        resolve(fallback);
+      },
+    );
+  });
+}
+
 /** Convierte dataUrl -> Blob para guardar en IndexedDB */
 function dataUrlToBlob(dataUrl: string): Blob {
   const base64 = dataUrl.split(",")[1] ?? "";
@@ -263,18 +281,18 @@ async function saveState(s: PersistedState) {
     for (const book of s.books) {
       if (book.dataUrl) {
         const blob = dataUrlToBlob(book.dataUrl);
-        await idbSet(IDB_FILE_PREFIX + book.id, blob);
+        await withTimeout(idbSet(IDB_FILE_PREFIX + book.id, blob), 2500, undefined);
         fileIds.push(book.id);
       }
     }
-    await idbSet(IDB_STORE_IDS_KEY, fileIds);
+    await withTimeout(idbSet(IDB_STORE_IDS_KEY, fileIds), 2500, undefined);
 
     // Estado ligero (sin dataUrl) en localStorage
     const light: PersistedState = {
       ...s,
       books: s.books.map((b) => ({ ...b, dataUrl: "" })),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(light));
+    writeStorage(STORAGE_KEY, JSON.stringify(light), "local");
   } catch (e) {
     console.error("Error guardando estado:", e);
   }
@@ -283,16 +301,16 @@ async function saveState(s: PersistedState) {
 /** Cargar estado desde localStorage + IndexedDB */
 async function loadState(): Promise<PersistedState> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = readStorage(STORAGE_KEY, "local");
     let parsed: PersistedState;
     if (raw) {
       parsed = JSON.parse(raw) as PersistedState;
     } else {
       // Migración desde v1 (todo en localStorage) por si hay datos viejos
-      const rawV1 = localStorage.getItem("biblioquest-state-v1");
+      const rawV1 = readStorage("biblioquest-state-v1", "local");
       if (rawV1) {
         parsed = JSON.parse(rawV1) as PersistedState;
-        localStorage.removeItem("biblioquest-state-v1");
+        removeStorage("biblioquest-state-v1", "local");
       } else {
         return defaultState();
       }
@@ -303,9 +321,10 @@ async function loadState(): Promise<PersistedState> {
       parsed.books.map(async (b) => {
         if (b.dataUrl) return b; // ya tiene dataUrl (v1 migrado)
         try {
-          const blob = await idbGet<Blob>(IDB_FILE_PREFIX + b.id);
+          const blob = await withTimeout(idbGet<Blob>(IDB_FILE_PREFIX + b.id), 1500, undefined);
           if (blob) {
-            const dataUrl = await blobToDataURL(blob);
+            const dataUrl = await withTimeout(blobToDataURL(blob), 1500, "");
+            if (!dataUrl) return { ...b, dataUrl: "" };
             return { ...b, dataUrl };
           }
         } catch {
