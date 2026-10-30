@@ -162,7 +162,9 @@ export default defineConfig({
     },
   },
   envDir: path.resolve(import.meta.dirname),
-  root: path.resolve(import.meta.dirname, "client"),
+  // GitHub Pages necesita el index.html del repositorio en la raíz.
+  // Los fuentes React permanecen organizados dentro de client/src.
+  root: import.meta.dirname,
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
