@@ -9,13 +9,37 @@ import CatMascot from "@/components/CatMascot";
 import AdminPanel from "@/components/AdminPanel";
 import ReaderModal from "@/components/ReaderModal";
 import Navbar from "@/components/Navbar";
+import CaptchaGate from "@/components/CaptchaGate";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
+import { readVerifiedFlag, writeVerifiedFlag } from "@/lib/safeStorage";
 import { Sparkles, BookMarked, Filter, MessageSquare, Star, Send, BookOpen, Clock, Award, Flame, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const [isVerified, setIsVerified] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return readVerifiedFlag();
+  });
+
+  const logAccessMutation = trpc.access.log.useMutation();
+  const { isAuthenticated, user } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setIsVerified(true);
+      writeVerifiedFlag();
+      logAccessMutation.mutate({ email: user.email || "google-user" });
+    }
+  }, [isAuthenticated, user]);
+
+  const handleVerify = (email: string) => {
+    setIsVerified(true);
+    writeVerifiedFlag();
+    logAccessMutation.mutate({ email });
+  };
+
   const {
     role,
     books,
@@ -55,6 +79,9 @@ export default function Home() {
       (filterCategory === "Todas" || b.category === filterCategory) &&
       (filterAge === "Todas" || b.age === filterAge),
   );
+
+  // Una sesión autenticada debe poder entrar aunque el navegador bloquee el almacenamiento.
+  if (!isVerified && !isAuthenticated) return <CaptchaGate onVerify={handleVerify} />;
 
   return (
     <div className="omega-home min-h-screen flex flex-col bg-background selection:bg-primary/10">
